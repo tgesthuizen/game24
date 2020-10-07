@@ -1,0 +1,61 @@
+\documentclass[11pt,a4paper]{article}
+\author{Tim Gesthuizen}
+\usepackage{tikz}
+\title{Game 24}
+\usetikzlibrary{trees}
+
+\begin{document}
+
+\maketitle
+
+\section{Problem description}
+
+A program shall be written that solves the \textit{Game of 24}.
+In this game you are given 4 numbers and need to come up with a
+selection of the 4 arithmetic operators $+$, $-$, $\cdot$ and $\div$ to
+reduce these numbers to the number 24.
+The numbers can be rearranged in any order and the order of the
+operations can also be manipulated.
+See figure \ref{fig:trees} for examples of syntax trees.
+
+\input{tikz/syntax-trees.inc}
+
+\section{Problem analysis}
+
+The problem is to construct all possible syntax trees and evaluate
+them systematically.
+Selecting the operators is not difficult:
+We have a set $Operators = \{+, -, \cdot, \div\}$ and generate all
+permutations of a multi-set $M$ such that $\vert M \vert = 3$.
+\newcommand{\complexop}{{\vert Operators \vert}^3}
+\newcommand{\opconnect}{4 \cdot 3 \cdot 3 \cdot 2 \cdot 2 \cdot 1}
+This results in $\complexop$ combinations of
+operators.
+The first operators left hand side can now be choosen from one of the
+four input operators.
+The right hand side can then be choosen from one of the remaining
+three numbers.
+After the first operator has been ``wired'' it becomes available as an
+input for the next operator.
+Therefore the total complexity of connecting the operators is $\opconnect$.
+This results in
+$\complexop \cdot \opconnect = 11664$ possibilities to solve the
+problem.
+
+\section{Design of the program}
+
+The user enters the four numbers the program shall find solutions
+for. The program then calculates all permutations and builds up the
+syntax trees for them. If a syntax tree evaluates to 24, it is
+printed.
+It should be noted that all of this can be done in $\mathcal{O}(1)$
+space.
+The above requirements result in the following software parts:
+\begin{enumerate}
+\item {\tt main} and user interactions
+\item Syntax tree creation and permutation
+\item Syntax tree evaluation
+\item Syntax tree printing
+\end{enumerate}
+
+\end{document}
