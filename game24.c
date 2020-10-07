@@ -1,6 +1,6 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 enum {
   number_count = 4,
@@ -24,13 +24,77 @@ struct Node {
 };
 
 typedef struct Node SyntaxTree[7];
+typedef struct {
+  int num;
+  bool valid;
+} EvalResult;
 
-static void incrementOperators(enum OperatorKind *ops) {
-  ++(*ops);
-  while (*ops == op_div) {
-    *ops++ = op_add;
-    ++(*ops);
+static EvalResult makeNumber(int number) {
+  return (EvalResult){.num = number, .valid = true};
+}
+static EvalResult makeInvalid() {
+  return (EvalResult){.num = -1, .valid = false};
+}
+
+static EvalResult evalSyntaxTree(const SyntaxTree tree,
+                                 const struct Node *curNode) {
+  switch (curNode->kind) {
+  case node_number:
+    return makeNumber(curNode->v.n);
+  case node_operator: {
+    EvalResult lhs = evalSyntaxTree(tree, tree + curNode->v.op.lhs),
+               rhs = evalSyntaxTree(tree, tree + curNode->v.op.rhs);
+    if (!lhs.valid || !rhs.valid) {
+      return makeInvalid();
+    }
+    switch (curNode->v.op.kind) {
+    case op_add:
+      return makeNumber(lhs.num + rhs.num);
+    case op_sub:
+      return makeNumber(lhs.num - rhs.num);
+    case op_mul:
+      return makeNumber(lhs.num * rhs.num);
+    case op_div:
+      return rhs.num != 0 ? makeNumber(lhs.num / rhs.num) : makeInvalid();
+    }
   }
+  }
+  __builtin_unreachable();
+}
+
+static void printSyntaxTreeImpl(const SyntaxTree tree,
+                                const struct Node *curNode) {
+  static const char opChars[4] = {'+', '-', '*', '/'};
+  switch (curNode->kind) {
+  case node_number:
+    printf("%d", curNode->v.n);
+    break;
+  case node_operator:
+    putchar('(');
+    printSyntaxTreeImpl(tree, tree + curNode->v.op.lhs);
+    printf(" %c ", opChars[curNode->v.op.kind]);
+    printSyntaxTreeImpl(tree, tree + curNode->v.op.rhs);
+    putchar(')');
+  }
+}
+static void printSyntaxTree(const SyntaxTree tree, const struct Node *curNode) {
+  printSyntaxTreeImpl(tree, curNode);
+  putchar('\n');
+}
+
+static void incrementOperators(enum OperatorKind ops[3]) {
+  ++ops[0];
+  if (ops[0] != op_div + 1)
+    return;
+  ops[0] = op_add;
+  ++ops[1];
+  if (ops[1] != op_div + 1)
+    return;
+  ops[1] = op_add;
+  ++ops[2];
+  if (ops[2] != op_div + 1)
+    return;
+  ops[2] = op_add;
 }
 
 static void swap(char *a, char *b) {
@@ -39,51 +103,24 @@ static void swap(char *a, char *b) {
   *b = c;
 }
 
-int evalSyntaxTree(const SyntaxTree tree, const struct Node *curNode) {
-  switch (curNode->kind) {
-  case node_number:
-    return curNode->v.n;
-  case node_operator: {
-    int lhs = evalSyntaxTree(tree, tree + curNode->v.op.lhs),
-        rhs = evalSyntaxTree(tree, tree + curNode->v.op.rhs);
-    switch (curNode->v.op.kind) {
-    case op_add:
-      return lhs + rhs;
-    case op_sub:
-      return lhs - rhs;
-    case op_mul:
-      return lhs * rhs;
-    case op_div:
-      return lhs / rhs;
+static int compareOps(const enum OperatorKind lhs[ops_count],
+                      const enum OperatorKind rhs[ops_count]) {
+  for (int i = 0; i < ops_count; ++i) {
+    if (lhs[i] != rhs[i]) {
+      return 0;
     }
   }
-  }
+  return 1;
 }
 
-const char opChars[4] = {'+', '-', '*', '/'};
-
-void printSyntaxTree(const SyntaxTree tree, const struct Node *curNode) {
-  switch (curNode->kind) {
-  case node_number:
-    printf("%d", curNode->v.n);
-    break;
-  case node_operator:
-    putchar('(');
-    printSyntaxTree(tree, tree + curNode->v.op.lhs);
-    printf(" %c ", opChars[curNode->v.op.kind]);
-    printSyntaxTree(tree, tree + curNode->v.op.rhs);
-    putchar(')');
-  }
-}
-
-void iterateAllSyntaxTrees(const int numbers[4],
-                           void (*callback)(const SyntaxTree tree,
-                                            const struct Node *root)) {
+static void iterateAllSyntaxTrees(const int numbers[4],
+                                  void (*callback)(const SyntaxTree tree,
+                                                   const struct Node *root)) {
   SyntaxTree tree;
-  static const enum OperatorKind finalOps[3] = {op_div, op_div, op_div};
-  enum OperatorKind ops[3] = {op_add, op_add, op_add};
+  static const enum OperatorKind finalOps[ops_count] = {op_div, op_div, op_div};
+  enum OperatorKind ops[ops_count] = {op_add, op_add, op_add};
 
-  for (; memcmp(ops, finalOps, sizeof(ops)) != 0; incrementOperators(ops)) {
+  for (; !compareOps(ops, finalOps); incrementOperators(ops)) {
 #define FOR_VAR(name, top) for (int name = 0; name < top; ++name)
 #define FOR_OPERAND(name, top)                                                 \
   FOR_VAR(name##_lhs, top) FOR_VAR(name##_rhs, top - 1)
@@ -93,7 +130,8 @@ void iterateAllSyntaxTrees(const int numbers[4],
         tree[i] = (struct Node){.kind = node_number, {.n = numbers[i]}};
       }
       for (int i = 0; i < 3; ++i) {
-        tree[i + 4] = (struct Node){.kind = node_operator, {.op = ops[i]}};
+        tree[i + 4] =
+            (struct Node){.kind = node_operator, {.op = {ops[i], -1, -1}}};
       }
       char itab[7] = {0, 1, 2, 3, 4, 5, 6};
       int arenaRight = 4;
@@ -119,13 +157,15 @@ void iterateAllSyntaxTrees(const int numbers[4],
   }
 }
 
-static void checkAndPrintCallback(const SyntaxTree tree, const struct Node *root) {
-  if (evalSyntaxTree(tree, root) == 42) {
+static void checkAndPrintCallback(const SyntaxTree tree,
+                                  const struct Node *root) {
+  const EvalResult res = evalSyntaxTree(tree, root);
+  if (res.valid && res.num == 24) {
     printSyntaxTree(tree, root);
   }
 }
 
-int main(int argc, char **argv) {
+int main() {
   int numbers[number_count];
   for (int i = 0; i < number_count; ++i) {
     const int code = scanf("%d", numbers + i);
@@ -135,4 +175,5 @@ int main(int argc, char **argv) {
     }
   }
   iterateAllSyntaxTrees(numbers, checkAndPrintCallback);
+  return 0;
 }
