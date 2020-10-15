@@ -3,6 +3,8 @@
 \usepackage{tikz}
 \title{Game 24}
 \usetikzlibrary{trees}
+\usepackage{listings}
+\usepackage{generic-article}
 
 \begin{document}
 
@@ -16,7 +18,7 @@ selection of the 4 arithmetic operators $+$, $-$, $\cdot$ and $\div$ to
 reduce these numbers to the number 24.
 The numbers can be rearranged in any order and the order of the
 operations can also be manipulated.
-See figure \ref{fig:trees} for examples of syntax trees.
+See figure~\ref{fig:trees} for examples of syntax trees.
 
 \input{tikz/syntax-trees.inc}
 
@@ -42,7 +44,7 @@ This results in
 $\complexop \cdot \opconnect = 11664$ possibilities to solve the
 problem.
 
-\section{Design of the program}
+\section{Design of the first iteration of the program}
 
 The user enters the four numbers the program shall find solutions
 for. The program then calculates all permutations and builds up the
@@ -57,5 +59,65 @@ The above requirements result in the following software parts:
 \item Syntax tree evaluation
 \item Syntax tree printing
 \end{enumerate}
+
+\section{Code of the first iteration of the program}
+
+\lstinputlisting[language=C]{iteration1.c}
+
+\section{Problems with the first iteration}
+
+While the first iteration of the program does what was asked for it
+does it in a very ugly way. E.g. the output for the numbers $2$ $2$ $3$ $9$
+is
+\begin{verbatim}
+((2 * 9) + (2 * 3))
+((2 * 3) + (2 * 9))
+((2 * 9) + (3 * 2))
+((3 * 2) + (2 * 9))
+((2 * 3) + (9 * 2))
+((9 * 2) + (2 * 3))
+((2 * 9) + (2 * 3))
+((2 * 3) + (2 * 9))
+((2 * 3) + (2 * 9))
+((2 * 9) + (2 * 3))
+((3 * 2) + (2 * 9))
+((2 * 9) + (3 * 2))
+((2 * 3) + (2 * 9))
+((2 * 9) + (2 * 3))
+((9 * 2) + (2 * 3))
+((2 * 3) + (9 * 2))
+((3 * 2) + (2 * 9))
+((2 * 9) + (3 * 2))
+((3 * 2) + (9 * 2))
+((9 * 2) + (3 * 2))
+((2 * 9) + (3 * 2))
+((3 * 2) + (2 * 9))
+((9 * 2) + (3 * 2))
+((3 * 2) + (9 * 2))
+...
+\end{verbatim}
+
+While these are unique solutions to a computer they look like the same
+solution to a human. This is because the computer does not know about
+the associativity and commutativity of the $+$ and $\cdot$
+operations.
+
+We can solve this issue in two ways:
+\begin{enumerate}
+\item \label{opt:rewrite} Rewrite part of the generation routine to
+  omit redundant trees
+\item \label{opt:filter} Filter the trees after the generation for
+  duplicates
+\end{enumerate}
+
+Option \ref{opt:rewrite} might be the faster version, but it has
+several drawbacks:
+\begin{itemize}
+\item It makes the already complex code for tree generation more
+  complex
+\item The \textit{iterateAllSyntaxTrees} function does one thing,
+  adding another thing (filtering) would violate the single
+  responsibility principle.
+\end{itemize}
 
 \end{document}
