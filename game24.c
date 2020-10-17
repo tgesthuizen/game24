@@ -23,7 +23,7 @@ struct Node {
   } v;
 };
 
-typedef struct Node SyntaxTree[7];
+typedef struct Node SyntaxTree[all_count];
 typedef struct {
   int num;
   bool valid;
@@ -82,7 +82,7 @@ static void printSyntaxTree(const SyntaxTree tree, const struct Node *curNode) {
   putchar('\n');
 }
 
-static void incrementOperators(enum OperatorKind ops[3]) {
+static void incrementOperators(enum OperatorKind ops[ops_count]) {
   ++ops[0];
   if (ops[0] != op_div + 1)
     return;
