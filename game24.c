@@ -177,7 +177,7 @@ static void iterateAllSyntaxTrees(const int numbers[4],
 static void findCommutativeOperator(SyntaxTree tree, struct Node *current);
 static void findAdjacentNodes(SyntaxTree tree, struct Node *current, int opKind, char ***arrIdxPtr);
 
-static void findAdjacentNodesHelper(SyntaxTree tree, struct Node *current, char nodeIdx, int opKind, char ***arrIdxPtr) {
+static void analyzeCommutativeOperand(SyntaxTree tree, struct Node *current, char nodeIdx, int opKind, char ***arrIdxPtr) {
   if (current->kind == node_number) {
     *(*arrIdxPtr)++ = nodeIdx;
   } else if (current->v.op.kind == opKind) {
@@ -191,8 +191,8 @@ static void findAdjacentNodesHelper(SyntaxTree tree, struct Node *current, char 
 static void findAdjacentNodes(SyntaxTree tree, struct Node *current, int opKind, char ***arrIdxPtr) {
   char lhsIdx = current->v.op.lhs;
   char rhsIdx = current->v.op.rhs;
-  findAdjacentNodesHelper(tree, tree + lhsIdx, lhsIdx, opKind, arrIdxPtr);
-  findAdjacentNodesHelper(tree, tree + rhsIdx, rhsIdx, opKind, arrIdxPtr);
+  analyzeCommutativeOperand(tree, tree + lhsIdx, lhsIdx, opKind, arrIdxPtr);
+  analyzeCommutativeOperand(tree, tree + rhsIdx, rhsIdx, opKind, arrIdxPtr);
 }
 
 static void findCommutativeOperator(SyntaxTree tree, struct Node *current) {
