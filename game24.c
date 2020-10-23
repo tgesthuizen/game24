@@ -178,13 +178,13 @@ static void findCommutativeOperator(SyntaxTree tree, struct Node *current);
 static void findAdjacentNodes(SyntaxTree tree, struct Node *current, int opKind, char ***arrIdxPtr);
 
 static void analyzeCommutativeOperand(SyntaxTree tree, char nodeIdx, int opKind, char ***arrIdxPtr) {
-  if (tree[nodeIdx].kind == node_number) {
+  if (tree[(int)nodeIdx].kind == node_number) {
     *(*arrIdxPtr)++ = nodeIdx;
-  } else if (tree[nodeIdx].v.op.kind == opKind) {
-    findAdjacentNodes(tree, &tree[nodeIdx], opKind, arrIdxPtr);
+  } else if (tree[(int)nodeIdx].v.op.kind == opKind) {
+    findAdjacentNodes(tree, &tree[(int)nodeIdx], opKind, arrIdxPtr);
   } else {
     *(*arrIdxPtr)++ = nodeIdx;
-    findCommutativeOperator(tree, &tree[nodeIdx]);
+    findCommutativeOperator(tree, &tree[(int)nodeIdx]);
   }
 }
 
