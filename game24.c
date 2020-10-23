@@ -176,20 +176,20 @@ static void iterateAllSyntaxTrees(const int numbers[4],
 
 static void findCommutativeOperator(SyntaxTree tree, struct Node *current);
 
-static void findAdjecentNodes(SyntaxTree tree, struct Node *current, int opKind, char ***idxPtrArrIdxPtr) {
+static void findAdjecentNodes(SyntaxTree tree, struct Node *current, int opKind, char ***arrIdxPtr) {
   if (current->kind == node_number) {
     return;
   }
   if (current->v.op.kind == opKind) {
     if (tree[0 + current->v.op.lhs].kind == node_operator) {
-      findAdjecentNodes(tree, tree + current->v.op.lhs, opKind, idxPtrArrIdxPtr);
+      findAdjecentNodes(tree, tree + current->v.op.lhs, opKind, arrIdxPtr);
     } else {
-      *(*idxPtrArrIdxPtr++) = &current->v.op.lhs;
+      *(*arrIdxPtr)++ = &current->v.op.lhs;
     }
     if (tree[0 + current->v.op.rhs].kind == node_operator) {
-      findAdjecentNodes(tree, tree + current->v.op.rhs, opKind, idxPtrArrIdxPtr);
+      findAdjecentNodes(tree, tree + current->v.op.rhs, opKind, arrIdxPtr);
     } else {
-      *(*idxPtrArrIdxPtr++) = &current->v.op.rhs;
+      *(*arrIdxPtr)++ = &current->v.op.rhs;
     }
   } else {
     findCommutativeOperator(tree, current);
