@@ -73,7 +73,7 @@
   numberstyle=\tiny\color{linenumber-gray},
   stringstyle=\color{string-mauve}
 }
-
+\newcommand{\code}[1]{\textit{#1}}
 
 \begin{document}
 
@@ -95,6 +95,7 @@ See figure~\ref{fig:trees} for examples of syntax trees.
 \input{tikz/syntax-tree-construction.inc}
 
 \section{Problem analysis}
+\label{sec:analysis}
 
 The problem is to construct all possible syntax trees and evaluate
 them systematically.
@@ -171,15 +172,15 @@ The first iteration of the program does very well. On Tim Gesthuizens
 laptop the program takes a little bit longer than a tenth of a second
 to run.
 Surprisingly, as shows in figure \ref{fig:opt-info-it1}, GCC is able to
-fold most of the code into the \textit{main} function.
+fold most of the code into the \code{main} function.
 Even the indirect call of \textit{iterateAllSyntaxTrees} to
-\textit{checkAndPrintCallback} is detected and inlined.
+\code{checkAndPrintCallback} is detected and inlined.
 As shown in figure \ref{fig:perfit1}, the hottest part of the program
 is the evaluation of syntax trees.
 As expected the compiler was not able to inline the two recursive
 functions that traverse the binary trees, therefore they are quite
 slow.
-As the time spent in \textit{evalSyntaxTree} is only around $50\%$,
+As the time spent in \code{evalSyntaxTree} is only around $50\%$,
 the maximal speedup possible by optimizing it is around $\times 2$.
 
 While the first iteration of the program does what was asked for it
@@ -231,65 +232,84 @@ several drawbacks:
 \begin{itemize}
 \item It makes the already complex code for tree generation more
   complex
-\item The \textit{iterateAllSyntaxTrees} function does one thing,
+\item The \code{iterateAllSyntaxTrees} function does one thing,
   adding another thing (filtering) would violate the single
   responsibility principle.
   This function should be changed when there is a change to how trees
   are generated, not when new shortcuts in evaluation are discovered.
 \end{itemize}
 
-\begin{figure}[h]
-  \centering
-  \begin{lstlisting}
-  Samples: 24  of event 'cycles:u', Event count (approx.): 3584609
-    Children      Self  Command  Shared Object     Symbol
-  +   83.22%     0.00%  game24   game24            [.] _start
-  +   83.22%     0.00%  game24   libc-2.31.so      [.] __libc_start_main
-  +   83.22%    29.23%  game24   game24            [.] main
-  +   78.44%     0.00%  game24   game24            [.] iterateAllSyntaxTrees (inlined)
-  +   49.21%     0.00%  game24   game24            [.] checkAndPrintCallback (inlined)
-  +   48.43%    48.43%  game24   game24            [.] evalSyntaxTree
-  +    9.27%     0.00%  game24   ld-2.31.so        [.] _start
-  +    9.14%     0.39%  game24   ld-2.31.so        [.] _dl_start
-  +    8.91%     0.00%  game24   game24            [.] swap (inlined)
-  \end{lstlisting}
-  \caption[Perf recording for iteration one]{Excerpt of the perf
-    recording of a run of the first iteration program}
-  \label{fig:perfit1}
-\end{figure}
+\input{measurements.inc}
 
-\begin{figure}[h]
-  \centering
-  \begin{lstlisting}
-  ~/src/game24/build$ gcc -fopt-info -O2 ../game24.c -o game24
-  ../game24.c:123:11: optimized:  Inlining compareOps/29 into iterateAllSyntaxTrees/30.
-  ../game24.c:153:7: optimized:  Inlining swap/28 into iterateAllSyntaxTrees/30.
-  ../game24.c:151:7: optimized:  Inlining swap/28 into iterateAllSyntaxTrees/30.
-  ../game24.c:148:7: optimized:  Inlining swap/28 into iterateAllSyntaxTrees/30.
-  ../game24.c:146:7: optimized:  Inlining swap/28 into iterateAllSyntaxTrees/30.
-  ../game24.c:143:7: optimized:  Inlining swap/28 into iterateAllSyntaxTrees/30.
-  ../game24.c:141:7: optimized:  Inlining swap/28 into iterateAllSyntaxTrees/30.
-  ../game24.c:58:61: optimized:  Inlining makeInvalid/23 into evalSyntaxTree/24.
-  ../game24.c:58:29: optimized:  Inlining makeNumber/22 into evalSyntaxTree/24.
-  ../game24.c:56:14: optimized:  Inlining makeNumber/22 into evalSyntaxTree/24.
-  ../game24.c:54:14: optimized:  Inlining makeNumber/22 into evalSyntaxTree/24.
-  ../game24.c:52:14: optimized:  Inlining makeNumber/22 into evalSyntaxTree/24.
-  ../game24.c:48:14: optimized:  Inlining makeInvalid/23 into evalSyntaxTree/24.
-  ../game24.c:43:12: optimized:  Inlining makeNumber/22 into evalSyntaxTree/24.
-  ../game24.c:77:5: optimized:   Inlining putchar/5 into printSyntaxTreeImpl/25 (always_inline).
-  ../game24.c:73:5: optimized:   Inlining putchar/5 into printSyntaxTreeImpl/25 (always_inline).
-  ../game24.c:82:3: optimized:   Inlining putchar/5 into printSyntaxTree/26 (always_inline).
-  ../game24.c:155:7: optimized: converting indirect call in iterateAllSyntaxTrees.constprop/54 to direct call to checkAndPrintCallback/31
-  ../game24.c:123:38: optimized:  Inlined incrementOperators/27 into iterateAllSyntaxTrees.constprop/54 which now has time 174325.022705 and size 116, net change of -9.
-  ../game24.c:155:7: optimized:  Inlined checkAndPrintCallback/55 into iterateAllSyntaxTrees.constprop/54 which now has time 182150.243408 and size 126, net change of +10.
-  ../game24.c:164:5: optimized:  Inlined printSyntaxTree/56 into checkAndPrintCallback/55 which now has time 183683.494385 and size 16, net change of +4.
-  ../game24.c:164:5: optimized:  Inlined printSyntaxTree/26 into checkAndPrintCallback/31 which now has time 22.030000 and size 20, net change of -6.
-  ../game24.c:132:7: optimized: loop with 2 iterations completely unrolled (header execution count -1856307904)
-  ../game24.c:108:3: optimized: loop with 2 iterations completely unrolled (header execution count 1743412647)
-  \end{lstlisting}
-  \caption[GCC opt-info, iteration 1]{GCC optimization info for the
-    first iteration program}
-  \label{fig:opt-info-it1}
-\end{figure}
+\section{Implementing a filter for duplicate solutions}
+
+The second iteration of the program shall solve the main problem of
+the first iteration:
+The printing of trees that are equivalent by means of associativity
+and commutativity.
+The problem is divided into two subproblems:
+\begin{description}
+\item[Canonicalization] Transform equivalent tree into equal trees.
+  This part shall be implemented by the function
+  \code{canonicalizeTree}.
+\item[Hashing] Collision free hashing of tree structures allows space
+  efficient checking for duplicates.
+  This function shall be implemented by the function
+  \code{hashTree}.
+\end{description}
+
+The callback function shall be extended in the following way:
+\begin{enumerate}
+\item The current tree shall be checked whether it evaluates to 24.
+\item If this is the case the tree is canonicalized using
+  \code{canonicalizeTree}.
+\item Next, the hash of the canonicalized tree is calculated using
+  \code{hashTree}.
+\item A binary search through the hashes of all previously printed
+  trees is done to see whether an equivalent tree has already been
+  printed.
+\item If an equivalent tree wasn't already printed, the current tree
+  is printed and the hash is added to the array of previously printed
+  arrays.
+\end{enumerate}
+
+\subsection{Canonicalization}
+
+In order to transform all equivalent trees into the same tree, an
+ordering for equivalent trees needs to be introduced.
+This way a tree can be transformed into the smallest or largest tree
+in the ordering.
+This kind of problem is well known in compiler theory.
+An interesting property of it is that while we need to order the
+trees, the ordering itself is not important.
+
+As we store the array nodes in a contiguous array we use the property
+that every node has an associated index to order them.
+By sorting the operands of associative nodes by their node indices we
+can transform all trees that are equivalent trees by means of
+associativity into the same tree.
+This can be extended to commutativity by storing all operands of
+adjacent commutative and associative nodes in a list and sorting the
+list at the end.
+
+\subsection{Hashing}
+
+Hashing trees using a collision free algorithm allows more storage
+efficient comparison of trees.
+The following describes a way to calculate an integer that fits into
+two bytes and is collision free for all tree structures.
+It is important to note that we only need to hash the tree structures
+which result is 24, as the numbers are always constant for a single
+problem.
+Given the complexities described in section~\ref{sec:analysis} it can
+be derived how many bits are needed to store the individual
+connections.
+$log_2{3 \cdot 4}$ bits are needed to store the operator kinds.
+See figure~\ref{fig:comptree} for a detailed overview of the
+bitpacking.
+In order to get the indices described in \ref{sec:analysis}, the arena
+algorithm has to be reiterated.
+
+\input{tikz/bitlayout}
 
 \end{document}
