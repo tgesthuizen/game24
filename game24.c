@@ -174,6 +174,46 @@ static void iterateAllSyntaxTrees(const int numbers[4],
   }
 }
 
+static void findCommutativeOperator(SyntaxTree tree, struct Node *current);
+
+static void findAdjecentNodes(SyntaxTree tree, struct Node *current, int opKind, char ***idxPtrArrIdxPtr) {
+  if (current->kind == node_number) {
+    return;
+  }
+  if (current->v.op.kind == opKind) {
+    if (tree[0 + current->v.op.lhs].kind == node_operator) {
+      findAdjecentNodes(tree, tree + current->v.op.lhs, opKind, idxPtrArrIdxPtr);
+    } else {
+      *(*idxPtrArrIdxPtr++) = &current->v.op.lhs;
+    }
+    if (tree[0 + current->v.op.rhs].kind == node_operator) {
+      findAdjecentNodes(tree, tree + current->v.op.rhs, opKind, idxPtrArrIdxPtr);
+    } else {
+      *(*idxPtrArrIdxPtr++) = &current->v.op.rhs;
+    }
+  } else {
+    findCommutativeOperator(tree, current);
+  }
+}
+
+static void findCommutativeOperator(SyntaxTree tree, struct Node *current) {
+  if (current->kind == node_number) {
+    return;
+  }
+  if (current->v.op.kind == op_add || current->v.op.kind == op_mul) {
+    char *operandIdxPtrs[ops_count * 2] = {NULL};
+    char **operandIdxPtrsIndex = operandIdxPtrs;
+    findAdjecentNodes(tree, current, current->v.op.kind, &operandIdxPtrsIndex);
+  } else {
+    findCommutativeOperator(tree, tree + current->v.op.lhs);
+    findCommutativeOperator(tree, tree + current->v.op.rhs);
+  }
+}
+
+static void canonicalizeTree(SyntaxTree tree, struct Node *root) {
+  findCommutativeOperator(tree, root);
+}
+
 static void checkAndPrintCallback(const SyntaxTree tree,
                                   const struct Node *root) {
   const EvalResult res = evalSyntaxTree(tree, root);
