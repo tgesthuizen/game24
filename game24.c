@@ -29,7 +29,7 @@ enum OperatorKind { op_add, op_sub, op_mul, op_div };
 
 struct Operator {
   enum OperatorKind kind;
-  char lhs, rhs;
+  unsigned char lhs, rhs;
 };
 enum NodeKind { node_number, node_operator };
 struct Node {
@@ -175,20 +175,20 @@ static void iterateAllSyntaxTrees(const int numbers[4],
 }
 
 static void findCommutativeOperator(SyntaxTree tree, struct Node *current);
-static void findAdjacentNodes(SyntaxTree tree, struct Node *current, int opKind, char ***arrIdxPtr);
+static void findAdjacentNodes(SyntaxTree tree, struct Node *current, int opKind, unsigned char ***arrIdxPtr);
 
-static void analyzeCommutativeOperand(SyntaxTree tree, char *nodeIdx, int opKind, char ***arrIdxPtr) {
-  if (tree[(int)*nodeIdx].kind == node_number) {
+static void analyzeCommutativeOperand(SyntaxTree tree, unsigned char *nodeIdx, int opKind, unsigned char ***arrIdxPtr) {
+  if (tree[*nodeIdx].kind == node_number) {
     *(*arrIdxPtr)++ = nodeIdx;
-  } else if (tree[(int)*nodeIdx].v.op.kind == opKind) {
-    findAdjacentNodes(tree, &tree[(int)*nodeIdx], opKind, arrIdxPtr);
+  } else if (tree[*nodeIdx].v.op.kind == opKind) {
+    findAdjacentNodes(tree, &tree[*nodeIdx], opKind, arrIdxPtr);
   } else {
     *(*arrIdxPtr)++ = nodeIdx;
-    findCommutativeOperator(tree, &tree[(int)*nodeIdx]);
+    findCommutativeOperator(tree, &tree[*nodeIdx]);
   }
 }
 
-static void findAdjacentNodes(SyntaxTree tree, struct Node *current, int opKind, char ***arrIdxPtr) {
+static void findAdjacentNodes(SyntaxTree tree, struct Node *current, int opKind, unsigned char ***arrIdxPtr) {
   analyzeCommutativeOperand(tree, &current->v.op.lhs, opKind, arrIdxPtr);
   analyzeCommutativeOperand(tree, &current->v.op.rhs, opKind, arrIdxPtr);
 }
@@ -198,8 +198,8 @@ static void findCommutativeOperator(SyntaxTree tree, struct Node *current) {
     return;
   }
   if (current->v.op.kind == op_add || current->v.op.kind == op_mul) {
-    char *operandIdxPtrs[ops_count * 2] = {NULL};
-    char **operandIdxPtrsIndex = operandIdxPtrs;
+    unsigned char *operandIdxPtrs[ops_count * 2] = {NULL};
+    unsigned char **operandIdxPtrsIndex = operandIdxPtrs;
     findAdjacentNodes(tree, current, current->v.op.kind, &operandIdxPtrsIndex);
   } else {
     findCommutativeOperator(tree, tree + current->v.op.lhs);
