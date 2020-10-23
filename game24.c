@@ -176,24 +176,11 @@ static void iterateAllSyntaxTrees(const int numbers[4],
 
 static void findCommutativeOperator(SyntaxTree tree, struct Node *current);
 
-static void findAdjecentNodes(SyntaxTree tree, struct Node *current, int opKind, char ***arrIdxPtr) {
-  if (current->kind == node_number) {
-    return;
-  }
-  if (current->v.op.kind == opKind) {
-    if (tree[0 + current->v.op.lhs].kind == node_operator) {
-      findAdjecentNodes(tree, tree + current->v.op.lhs, opKind, arrIdxPtr);
-    } else {
-      *(*arrIdxPtr)++ = &current->v.op.lhs;
-    }
-    if (tree[0 + current->v.op.rhs].kind == node_operator) {
-      findAdjecentNodes(tree, tree + current->v.op.rhs, opKind, arrIdxPtr);
-    } else {
-      *(*arrIdxPtr)++ = &current->v.op.rhs;
-    }
-  } else {
-    findCommutativeOperator(tree, current);
-  }
+static void findAdjacentNodes(SyntaxTree tree, struct Node *current, int opKind, char ***arrIdxPtr) {
+  char lhsIdx = current->v.op.lhs;
+  char rhsIdx = current->v.op.rhs;
+  findAdjacentNodesHelper(tree, tree + lhsIdx, lhsIdx, opKind, arrIdxPtr);
+  findAdjacentNodesHelper(tree, tree + rhsIdx, rhsIdx, opKind, arrIdxPtr);
 }
 
 static void findCommutativeOperator(SyntaxTree tree, struct Node *current) {
@@ -203,7 +190,7 @@ static void findCommutativeOperator(SyntaxTree tree, struct Node *current) {
   if (current->v.op.kind == op_add || current->v.op.kind == op_mul) {
     char *operandIdxPtrs[ops_count * 2] = {NULL};
     char **operandIdxPtrsIndex = operandIdxPtrs;
-    findAdjecentNodes(tree, current, current->v.op.kind, &operandIdxPtrsIndex);
+    findAdjacentNodes(tree, current, current->v.op.kind, &operandIdxPtrsIndex);
   } else {
     findCommutativeOperator(tree, tree + current->v.op.lhs);
     findCommutativeOperator(tree, tree + current->v.op.rhs);
