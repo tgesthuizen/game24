@@ -20,7 +20,8 @@
     level 1/.style={sibling distance=3cm},
     level 2/.style={sibling distance=1.5cm},
     arena/.style={shape=rectangle,draw,dotted},
-    con/.style={->,thick,draw}]
+    con/.style={->,thick,draw},
+    every node/.style={minimum width=.7cm}]
 
     \node (first1) {1};
     \node[right of=first1] (second1) {2};
