@@ -33,6 +33,7 @@
     citecolor={blue!50!black},
     urlcolor={blue!80!black}
 }
+\usepackage{multicol}
 \usepackage{listings}
 \lstdefinelanguage{scheme}
 {
@@ -186,6 +187,7 @@ the maximal speedup possible by optimizing it is around $\times 2$.
 While the first iteration of the program does what was asked for it
 does it in a very ugly way. E.g. the output for the numbers $2$ $2$ $3$ $9$
 is
+\begin{multicols}{2}
 \begin{verbatim}
 ((2 * 9) + (2 * 3))
 ((2 * 3) + (2 * 9))
@@ -213,6 +215,7 @@ is
 ((3 * 2) + (9 * 2))
 ...
 \end{verbatim}
+\end{multicols}
 
 While these are unique solutions to a computer they look like the same
 solution to a human. This is because the computer does not know about
