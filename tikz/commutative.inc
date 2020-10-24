@@ -44,7 +44,7 @@
       child{ node{3} }
     };
 
-    \node[below = 2cm of b05]{$((4 \cdot 3) - (1 + 2))$};
+    \node[below = 2cm of b05]{$((1 \cdot 2) - (4 + 3))$};
 
     \node[shape=coordinate, below = 5cm of b00.west] (xl) {};
     \node[shape=coordinate, below = 5cm of b06.east] (xr) {};
@@ -63,11 +63,11 @@
       child{ node{2} }
     } child {
       node {$+$}
-      child{ node{4} }
       child{ node{3} }
+      child{ node{4} }
     };
 
-    \node[below = 2cm of b15]{$((3 \cdot 4) - (1 + 2))$};
+    \node[below = 2cm of b15]{$((1 \cdot 2) - (3 + 4))$};
   \end{tikzpicture}
   \caption{Example of tree canonicalization by means of associativity}
   \label{fig:assoccanon}
@@ -104,7 +104,7 @@
     };
     \node[draw, shape=ellipse, color=red, fit=(n00) (n01)] {};
 
-    \node[below = 2cm of b05]{$((4 \cdot 3) + (1 + 2))$};
+    \node[below = 2cm of b05]{$((1 \cdot 2) + (4 + 3))$};
 
     \node[shape=coordinate, below = 5cm of b00.west] (xl) {};
     \node[shape=coordinate, below = 5cm of b06.east] (xr) {};
