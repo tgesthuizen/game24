@@ -31,7 +31,7 @@
     \node[right of = root-first, node distance = 6cm] {$+$}
     child{ node{$1$} }
     child{ node{$-$}
-      child{ node{$*$}
+      child{ node{$\cdot$}
         child{ node{$2$} }
         child{ node{$3$} }
       }
