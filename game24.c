@@ -18,6 +18,8 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
+#include <stdint.h>
 
 enum {
   number_count = 4,
@@ -212,6 +214,22 @@ static void canonicalizeTree(SyntaxTree tree, struct Node *root) {
 }
 
 static void hashTree(SyntaxTree tree, struct Node *root) {
+  union {
+    struct repr {
+      unsigned int first_kind: 2;
+      unsigned int second_kind: 2;
+      unsigned int third_kind: 2;
+      unsigned int first_left: 2;
+      unsigned int first_right: 2;
+      unsigned int second_left: 2;
+      unsigned int second_right: 1;
+      unsigned int third_left: 1;
+    } bits;
+    uint16_t result;
+  } hashTree;
+  assert(sizeof(hashTree.bits) == sizeof(hashTree.result));
+  char itab[all_count] = {0, 1, 2, 3, 4, 5, 6};
+  int arena = 4;
   
 }
 
