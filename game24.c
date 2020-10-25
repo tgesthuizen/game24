@@ -195,6 +195,22 @@ static void findAdjacentNodes(SyntaxTree tree, struct Node *current, int opKind,
   analyzeCommutativeOperand(tree, &current->v.op.rhs, opKind, arrIdxPtr);
 }
 
+static void swapValues(char *array[], int indexA, int indexB) {
+    int temp = *(array[indexA]);
+    *(array[indexA]) = *(array[indexB]);
+    *(array[indexB]) = temp;
+}
+
+static void bubbleSort(char *array[], int length) {
+    for (int sorted = 0; sorted < length - 1; ++sorted) {
+        for (int toSort = 0; toSort < length - 1 - sorted; ++toSort) {
+            if (*(array[toSort]) > *(array[toSort + 1])) {
+                swapValues(array, toSort, toSort + 1);
+            }
+        }
+    }
+}
+
 static void findCommutativeOperator(SyntaxTree tree, struct Node *current) {
   if (current->kind == node_number) {
     return;
@@ -203,6 +219,7 @@ static void findCommutativeOperator(SyntaxTree tree, struct Node *current) {
     unsigned char *operandIdxPtrs[ops_count * 2] = {NULL};
     unsigned char **operandIdxPtrsIndex = operandIdxPtrs;
     findAdjacentNodes(tree, current, current->v.op.kind, &operandIdxPtrsIndex);
+    bubbleSort(operandIdxPtrs, ops_count * 2);
   } else {
     findCommutativeOperator(tree, tree + current->v.op.lhs);
     findCommutativeOperator(tree, tree + current->v.op.rhs);
