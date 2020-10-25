@@ -18,6 +18,8 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
+#include <stdint.h>
 
 enum {
   number_count = 4,
@@ -29,7 +31,7 @@ enum OperatorKind { op_add, op_sub, op_mul, op_div };
 
 struct Operator {
   enum OperatorKind kind;
-  char lhs, rhs;
+  unsigned char lhs, rhs;
 };
 enum NodeKind { node_number, node_operator };
 struct Node {
@@ -172,6 +174,80 @@ static void iterateAllSyntaxTrees(const int numbers[4],
       callback(tree, tree + 6);
     }
   }
+}
+
+static void findCommutativeOperator(SyntaxTree tree, struct Node *current);
+static void findAdjacentNodes(SyntaxTree tree, struct Node *current, int opKind, unsigned char ***arrIdxPtr);
+
+static void analyzeCommutativeOperand(SyntaxTree tree, unsigned char *nodeIdx, int opKind, unsigned char ***arrIdxPtr) {
+  if (tree[*nodeIdx].kind == node_number) {
+    *(*arrIdxPtr)++ = nodeIdx;
+  } else if (tree[*nodeIdx].v.op.kind == opKind) {
+    findAdjacentNodes(tree, &tree[*nodeIdx], opKind, arrIdxPtr);
+  } else {
+    *(*arrIdxPtr)++ = nodeIdx;
+    findCommutativeOperator(tree, &tree[*nodeIdx]);
+  }
+}
+
+static void findAdjacentNodes(SyntaxTree tree, struct Node *current, int opKind, unsigned char ***arrIdxPtr) {
+  analyzeCommutativeOperand(tree, &current->v.op.lhs, opKind, arrIdxPtr);
+  analyzeCommutativeOperand(tree, &current->v.op.rhs, opKind, arrIdxPtr);
+}
+
+static void swapValues(char *array[], int indexA, int indexB) {
+    int temp = *(array[indexA]);
+    *(array[indexA]) = *(array[indexB]);
+    *(array[indexB]) = temp;
+}
+
+static void bubbleSort(char *array[], int length) {
+    for (int sorted = 0; sorted < length - 1; ++sorted) {
+        for (int toSort = 0; toSort < length - 1 - sorted; ++toSort) {
+            if (*(array[toSort]) > *(array[toSort + 1])) {
+                swapValues(array, toSort, toSort + 1);
+            }
+        }
+    }
+}
+
+static void findCommutativeOperator(SyntaxTree tree, struct Node *current) {
+  if (current->kind == node_number) {
+    return;
+  }
+  if (current->v.op.kind == op_add || current->v.op.kind == op_mul) {
+    unsigned char *operandIdxPtrs[ops_count * 2] = {NULL};
+    unsigned char **operandIdxPtrsIndex = operandIdxPtrs;
+    findAdjacentNodes(tree, current, current->v.op.kind, &operandIdxPtrsIndex);
+    bubbleSort(operandIdxPtrs, ops_count * 2);
+  } else {
+    findCommutativeOperator(tree, tree + current->v.op.lhs);
+    findCommutativeOperator(tree, tree + current->v.op.rhs);
+  }
+}
+
+static void canonicalizeTree(SyntaxTree tree, struct Node *root) {
+  findCommutativeOperator(tree, root);
+}
+
+static void hashTree(SyntaxTree tree, struct Node *root) {
+  union {
+    struct repr {
+      unsigned int first_kind: 2;
+      unsigned int second_kind: 2;
+      unsigned int third_kind: 2;
+      unsigned int first_left: 2;
+      unsigned int first_right: 2;
+      unsigned int second_left: 2;
+      unsigned int second_right: 1;
+      unsigned int third_left: 1;
+    } bits;
+    uint16_t result;
+  } hashTree;
+  assert(sizeof(hashTree.bits) == sizeof(hashTree.result));
+  char itab[all_count] = {0, 1, 2, 3, 4, 5, 6};
+  int arena = 4;
+  
 }
 
 static void checkAndPrintCallback(const SyntaxTree tree,
