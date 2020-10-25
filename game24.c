@@ -211,6 +211,10 @@ static void canonicalizeTree(SyntaxTree tree, struct Node *root) {
   findCommutativeOperator(tree, root);
 }
 
+static void hashTree(SyntaxTree tree, struct Node *root) {
+  
+}
+
 static void checkAndPrintCallback(const SyntaxTree tree,
                                   const struct Node *root) {
   const EvalResult res = evalSyntaxTree(tree, root);
