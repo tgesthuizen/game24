@@ -331,7 +331,7 @@ static uint16_t *upperBound(uint16_t *first, uint16_t *last, uint16_t hash) {
   while (sizeLeft > 0) {
     size_t step = sizeLeft / 2;
     uint16_t *it = first + step;
-    if (hash >= *it) {
+    if (hash > *it) {
       first = ++it;
       sizeLeft -= step + 1;
     } else {
