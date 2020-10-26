@@ -233,8 +233,15 @@ static void canonicalizeTree(SyntaxTree tree, struct Node *root) {
   findCommutativeOperator(tree, root);
 }
 
+static int *linearSearch(char *start, char goal) {
+  while (*start != goal) {
+    start++;
+  }
+  return start;
+}
+
 static void hashTree(SyntaxTree tree, struct Node *root) {
-  union {
+  union hashTree {
     struct repr {
       unsigned int first_kind: 2;
       unsigned int second_kind: 2;
@@ -249,7 +256,7 @@ static void hashTree(SyntaxTree tree, struct Node *root) {
   } hashTree;
   assert(sizeof(hashTree.bits) == sizeof(hashTree.result));
   char itab[all_count] = {0, 1, 2, 3, 4, 5, 6};
-  int arena = 4;
+  int arenaRight = 4;
   
 }
 
