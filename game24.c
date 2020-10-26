@@ -117,8 +117,13 @@ static void incrementOperators(enum OperatorKind ops[ops_count]) {
   ops[2] = op_add;
 }
 
-static void swap(char *a, char *b) {
-  int c = *a;
+static void swap_char(char *a, char *b) {
+  char c = *a;
+  *a = *b;
+  *b = c;
+}
+static void swap_uchar(unsigned char *a, unsigned char *b) {
+  unsigned char c = *a;
   *a = *b;
   *b = c;
 }
@@ -160,19 +165,19 @@ static void iterateAllSyntaxTrees(const int numbers[4],
       int curNode = 4;
       struct Node *curOperator = tree + 4;
       curOperator->v.op.lhs = itab[first_lhs];
-      swap(itab + first_lhs, itab + --arenaRight);
+      swap_char(itab + first_lhs, itab + --arenaRight);
       curOperator->v.op.rhs = itab[first_rhs];
-      swap(itab + first_rhs, itab + curNode++);
+      swap_char(itab + first_rhs, itab + curNode++);
       ++curOperator;
       curOperator->v.op.lhs = itab[second_lhs];
-      swap(itab + second_lhs, itab + --arenaRight);
+      swap_char(itab + second_lhs, itab + --arenaRight);
       curOperator->v.op.rhs = itab[second_rhs];
-      swap(itab + second_rhs, itab + curNode++);
+      swap_char(itab + second_rhs, itab + curNode++);
       ++curOperator;
       curOperator->v.op.lhs = itab[third_lhs];
-      swap(itab + third_lhs, itab + --arenaRight);
+      swap_char(itab + third_lhs, itab + --arenaRight);
       curOperator->v.op.rhs = itab[third_rhs];
-      swap(itab + third_rhs, itab + curNode++);
+      swap_char(itab + third_rhs, itab + curNode++);
       ++curOperator;
       callback(tree, tree + 6, data);
     }
@@ -201,19 +206,13 @@ static void findAdjacentNodes(SyntaxTree tree, struct Node *current, int opKind,
   analyzeCommutativeOperand(tree, &current->v.op.rhs, opKind, arrIdxPtr);
 }
 
-static void swapBubbleSort(unsigned char **pos1, unsigned char **pos2) {
-  unsigned char temp = **pos1;
-  **pos1 = **pos2;
-  **pos2 = temp;
-}
-
 static void bubbleSort(unsigned char **first, unsigned char **last) {
   bool swapped = false;
   while (!swapped) {
     swapped = true;
     for (unsigned char **pos = first + 1; pos != last; ++pos) {
       if (**pos < **(pos - 1)) {
-        swapBubbleSort(pos, pos - 1);
+        swap_uchar(*pos, *(pos - 1));
         swapped = false;
       }
     }
@@ -283,19 +282,19 @@ static uint16_t hashTree(SyntaxTree tree, struct Node *root) {
   struct Node *curOperator = tree + 4;
   hashTree.bits.first_kind = curOperator->kind;
   hashTree.bits.first_left = linearSearch(itab, curOperator->v.op.lhs) - itab;
-  swap(itab + hashTree.bits.first_left, itab + --arenaRight);
+  swap_char(itab + hashTree.bits.first_left, itab + --arenaRight);
   hashTree.bits.first_right = linearSearch(itab, curOperator->v.op.rhs) - itab;
-  swap(itab + hashTree.bits.first_right, itab + curNode++);
+  swap_char(itab + hashTree.bits.first_right, itab + curNode++);
   ++curOperator;
   hashTree.bits.second_kind = curOperator->kind;
   hashTree.bits.second_left = linearSearch(itab, curOperator->v.op.lhs) - itab;
-  swap(itab + hashTree.bits.second_left, itab + --arenaRight);
+  swap_char(itab + hashTree.bits.second_left, itab + --arenaRight);
   hashTree.bits.second_right = linearSearch(itab, curOperator->v.op.rhs) - itab;
-  swap(itab + hashTree.bits.second_right, itab + curNode++);
+  swap_char(itab + hashTree.bits.second_right, itab + curNode++);
   ++curOperator;
   hashTree.bits.third_kind = curOperator->kind;
   hashTree.bits.third_left = linearSearch(itab, curOperator->v.op.lhs) - itab;
-  swap(itab + hashTree.bits.third_left, itab + --arenaRight);
+  swap_char(itab + hashTree.bits.third_left, itab + --arenaRight);
   return hashTree.hash;
 }
 
