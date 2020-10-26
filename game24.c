@@ -58,7 +58,7 @@ struct Operator {
 enum NodeKind { node_number, node_operator };
 struct Node {
   enum NodeKind kind;
-  union {
+  union NodeValue {
     int n;
     struct Operator op;
   } v;
