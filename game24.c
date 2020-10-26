@@ -16,11 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <assert.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
-#include <stdint.h>
 #include <string.h>
 
 enum {
@@ -181,9 +181,11 @@ static void iterateAllSyntaxTrees(const int numbers[4],
 }
 
 static void findCommutativeOperator(SyntaxTree tree, struct Node *current);
-static void findAdjacentNodes(SyntaxTree tree, struct Node *current, int opKind, unsigned char ***arrIdxPtr);
+static void findAdjacentNodes(SyntaxTree tree, struct Node *current, int opKind,
+                              unsigned char ***arrIdxPtr);
 
-static void analyzeCommutativeOperand(SyntaxTree tree, unsigned char *nodeIdx, int opKind, unsigned char ***arrIdxPtr) {
+static void analyzeCommutativeOperand(SyntaxTree tree, unsigned char *nodeIdx,
+                                      int opKind, unsigned char ***arrIdxPtr) {
   if (tree[*nodeIdx].kind == node_number) {
     *(*arrIdxPtr)++ = nodeIdx;
   } else if (tree[*nodeIdx].v.op.kind == opKind) {
@@ -194,7 +196,8 @@ static void analyzeCommutativeOperand(SyntaxTree tree, unsigned char *nodeIdx, i
   }
 }
 
-static void findAdjacentNodes(SyntaxTree tree, struct Node *current, int opKind, unsigned char ***arrIdxPtr) {
+static void findAdjacentNodes(SyntaxTree tree, struct Node *current, int opKind,
+                              unsigned char ***arrIdxPtr) {
   analyzeCommutativeOperand(tree, &current->v.op.lhs, opKind, arrIdxPtr);
   analyzeCommutativeOperand(tree, &current->v.op.rhs, opKind, arrIdxPtr);
 }
@@ -206,19 +209,20 @@ static void swapBubbleSort(unsigned char **pos1, unsigned char **pos2) {
 }
 
 static void bubbleSort(unsigned char **first, unsigned char **last) {
-    bool swapped = false;
-    while (!swapped) {
-      swapped = true;
-      for (unsigned char **pos = first + 1; pos != last; ++pos) {
-        if (**pos < **(pos - 1)) {
-          swapBubbleSort(pos, pos - 1);
-          swapped = false;
-        }
+  bool swapped = false;
+  while (!swapped) {
+    swapped = true;
+    for (unsigned char **pos = first + 1; pos != last; ++pos) {
+      if (**pos < **(pos - 1)) {
+        swapBubbleSort(pos, pos - 1);
+        swapped = false;
       }
     }
+  }
 }
 
-static unsigned char **findNullPointer(unsigned char **first, unsigned char **last) {
+static unsigned char **findNullPointer(unsigned char **first,
+                                       unsigned char **last) {
   while (first != last) {
     if (*first != NULL) {
       first++;
@@ -237,7 +241,8 @@ static void findCommutativeOperator(SyntaxTree tree, struct Node *current) {
     unsigned char *operandIdxPtrs[ops_count * 2] = {NULL};
     unsigned char **operandIdxPtrsIndex = operandIdxPtrs;
     findAdjacentNodes(tree, current, current->v.op.kind, &operandIdxPtrsIndex);
-    bubbleSort(operandIdxPtrs, findNullPointer(operandIdxPtrs, operandIdxPtrs + ops_count * 2));
+    bubbleSort(operandIdxPtrs,
+               findNullPointer(operandIdxPtrs, operandIdxPtrs + ops_count * 2));
   } else {
     findCommutativeOperator(tree, tree + current->v.op.lhs);
     findCommutativeOperator(tree, tree + current->v.op.rhs);
@@ -258,14 +263,14 @@ static char *linearSearch(char *start, char goal) {
 static uint16_t hashTree(SyntaxTree tree, struct Node *root) {
   union hashTree {
     struct repr {
-      unsigned int first_kind: 2;
-      unsigned int second_kind: 2;
-      unsigned int third_kind: 2;
-      unsigned int first_left: 2;
-      unsigned int first_right: 2;
-      unsigned int second_left: 2;
-      unsigned int second_right: 1;
-      unsigned int third_left: 1;
+      unsigned int first_kind : 2;
+      unsigned int second_kind : 2;
+      unsigned int third_kind : 2;
+      unsigned int first_left : 2;
+      unsigned int first_right : 2;
+      unsigned int second_left : 2;
+      unsigned int second_right : 1;
+      unsigned int third_left : 1;
     } bits;
     uint16_t hash;
   } hashTree;
@@ -318,15 +323,15 @@ static uint16_t *upperBound(uint16_t *first, uint16_t *last, uint16_t hash) {
 static void insert(uint16_t hash, uint16_t *pos, struct SharedState *state) {
   if (state->size == state->capacity) {
     state->capacity *= 2;
-    state->seenTrees = realloc(state->seenTrees, sizeof(uint16_t) * state->capacity);
+    state->seenTrees =
+        realloc(state->seenTrees, sizeof(uint16_t) * state->capacity);
   }
   memmove(pos + 1, pos, state->seenTrees + state->size - pos);
   *pos = hash;
 }
 
 static void checkAndPrintCallback(const SyntaxTree tree,
-                                  const struct Node *root,
-                                  void *data) {
+                                  const struct Node *root, void *data) {
   const EvalResult res = evalSyntaxTree(tree, root);
   if (res.valid && res.num == 24) {
     SyntaxTree copy;
@@ -335,7 +340,8 @@ static void checkAndPrintCallback(const SyntaxTree tree,
     canonicalizeTree(copy, rootCopy);
     uint16_t hash = hashTree(copy, rootCopy);
     struct SharedState *state = data;
-    uint16_t *pos = upperBound(state->seenTrees, state->seenTrees + state->size, hash);
+    uint16_t *pos =
+        upperBound(state->seenTrees, state->seenTrees + state->size, hash);
     if (*pos != hash) {
       printSyntaxTree(copy, rootCopy);
       insert(hash, pos, state);
@@ -352,7 +358,8 @@ int main() {
       return 1;
     }
   }
-  struct SharedState state = (struct SharedState){.seenTrees = NULL, .size = 0, .capacity = 0};
+  struct SharedState state =
+      (struct SharedState){.seenTrees = NULL, .size = 0, .capacity = 0};
   iterateAllSyntaxTrees(numbers, checkAndPrintCallback, &state);
   return 0;
 }
