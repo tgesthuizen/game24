@@ -36,7 +36,7 @@ static void *xmalloc(size_t size) {
 }
 
 static void *xrealloc(void *ptr, size_t size) {
-  ptr = xrealloc(ptr, size);
+  ptr = realloc(ptr, size);
   if (ptr) {
     return ptr;
   }
