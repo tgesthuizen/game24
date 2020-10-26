@@ -22,6 +22,27 @@
 #include <stdlib.h>
 #include <string.h>
 
+static __attribute__((noreturn)) void handleOutOfMemory() {
+  fputs("System is out of memory, aborting", stderr);
+  abort();
+}
+
+static void *xmalloc(size_t size) {
+  void *ptr = malloc(size);
+  if (ptr) {
+    return ptr;
+  }
+  handleOutOfMemory();
+}
+
+static void *xrealloc(void *ptr, size_t size) {
+  ptr = xrealloc(ptr, size);
+  if (ptr) {
+    return ptr;
+  }
+  handleOutOfMemory();
+}
+
 enum {
   number_count = 4,
   ops_count = number_count - 1,
@@ -324,7 +345,7 @@ static void insert(uint16_t hash, uint16_t *pos, struct SharedState *state) {
   if (state->size == state->capacity) {
     state->capacity *= 2;
     state->seenTrees =
-        realloc(state->seenTrees, sizeof(uint16_t) * state->capacity);
+        xrealloc(state->seenTrees, sizeof(uint16_t) * state->capacity);
   }
   memmove(pos + 1, pos, state->seenTrees + state->size - pos);
   *pos = hash;
@@ -361,9 +382,10 @@ int main() {
     }
   }
   struct SharedState state = (struct SharedState){
-      .seenTrees = malloc(sizeof(uint16_t) * initial_cache_size),
+      .seenTrees = xmalloc(sizeof(uint16_t) * initial_cache_size),
       .size = 0,
       .capacity = initial_cache_size};
   iterateAllSyntaxTrees(numbers, checkAndPrintCallback, &state);
+  free(state.seenTrees);
   return 0;
 }
