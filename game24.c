@@ -351,6 +351,8 @@ static void checkAndPrintCallback(const SyntaxTree tree,
   }
 }
 
+enum { initial_cache_size = 32 };
+
 int main() {
   int numbers[number_count];
   for (int i = 0; i < number_count; ++i) {
@@ -360,8 +362,10 @@ int main() {
       return 1;
     }
   }
-  struct SharedState state =
-      (struct SharedState){.seenTrees = NULL, .size = 0, .capacity = 0};
+  struct SharedState state = (struct SharedState){
+      .seenTrees = malloc(sizeof(uint16_t) * initial_cache_size),
+      .size = 0,
+      .capacity = initial_cache_size};
   iterateAllSyntaxTrees(numbers, checkAndPrintCallback, &state);
   return 0;
 }
