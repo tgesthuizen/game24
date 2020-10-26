@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdint.h>
+#include <string.h>
 
 enum {
   number_count = 4,
@@ -134,7 +135,9 @@ static int compareOps(const enum OperatorKind lhs[ops_count],
 
 static void iterateAllSyntaxTrees(const int numbers[4],
                                   void (*callback)(const SyntaxTree tree,
-                                                   const struct Node *root)) {
+                                                   const struct Node *root,
+                                                   void *data),
+                                  void *data) {
   SyntaxTree tree;
   static const enum OperatorKind finalOps[ops_count] = {op_div, op_div, op_div};
   enum OperatorKind ops[ops_count] = {op_add, op_add, op_add};
@@ -171,7 +174,7 @@ static void iterateAllSyntaxTrees(const int numbers[4],
       curOperator->v.op.rhs = itab[third_rhs];
       swap(itab + third_rhs, itab + curNode++);
       ++curOperator;
-      callback(tree, tree + 6);
+      callback(tree, tree + 6, data);
     }
   }
 }
@@ -240,7 +243,7 @@ static int *linearSearch(char *start, char goal) {
   return start;
 }
 
-static void hashTree(SyntaxTree tree, struct Node *root) {
+static uint16_t hashTree(SyntaxTree tree, struct Node *root) {
   union hashTree {
     struct repr {
       unsigned int first_kind: 2;
@@ -252,9 +255,9 @@ static void hashTree(SyntaxTree tree, struct Node *root) {
       unsigned int second_right: 1;
       unsigned int third_left: 1;
     } bits;
-    uint16_t result;
+    uint16_t hash;
   } hashTree;
-  assert(sizeof(hashTree.bits) == sizeof(hashTree.result));
+  assert(sizeof(hashTree.bits) == sizeof(hashTree.hash));
   char itab[7] = {0, 1, 2, 3, 4, 5, 6};
   int arenaRight = 4;
   int curNode = 4;
@@ -274,13 +277,54 @@ static void hashTree(SyntaxTree tree, struct Node *root) {
   hashTree.bits.third_kind = curOperator->kind;
   hashTree.bits.third_left = linearSearch(itab, curOperator->v.op.lhs) - itab;
   swap(itab + hashTree.bits.third_left, itab + --arenaRight);
+  return hashTree.hash;
+}
+
+struct sharedState {
+  uint16_t *seenTrees;
+  size_t size, capacity;
+};
+
+static uint16_t *upperBound(uint16_t *first, size_t *last, uint16_t hash) {
+  while (first + 1 < last) {
+    uint16_t *mid = first + (last - first) / 2;
+    if (*mid == hash) {
+      return mid;
+    } else if (*mid < hash) {
+      first = mid;
+    } else {
+      last = mid;
+    }
+  }
+  if (*first <= hash) {
+    return first + 1;
+  } else {
+    return first;
+  }
+}
+
+static void insert(uint16_t hash, uint16_t *pos, struct sharedState *state) {
+  if (state->size == state->capacity) {
+    state->capacity *= 2;
+    realloc(state->seenTrees, sizeof(uint16_t) * state->capacity);
+  }
+  memmove(pos + 1, pos, state->size);
+  *pos = hash;
 }
 
 static void checkAndPrintCallback(const SyntaxTree tree,
-                                  const struct Node *root) {
+                                  const struct Node *root,
+                                  void *data) {
   const EvalResult res = evalSyntaxTree(tree, root);
   if (res.valid && res.num == 24) {
-    printSyntaxTree(tree, root);
+    canonicalizeTree(tree, root);
+    uint16_t hash = hashTree(tree, root);
+    struct sharedState *state = data;
+    uint16_t *pos = upperBound(state->seenTrees, state->seenTrees + state->size, hash);
+    if (*pos != hash) {
+      printSyntaxTree(tree, root);
+      insert(hash, pos, state);
+    }
   }
 }
 
@@ -293,6 +337,7 @@ int main() {
       return 1;
     }
   }
-  iterateAllSyntaxTrees(numbers, checkAndPrintCallback);
+  struct sharedState state = {.seenTrees = {NULL}, .size = 0, .capacity = 0};
+  iterateAllSyntaxTrees(numbers, checkAndPrintCallback, &state);
   return 0;
 }
