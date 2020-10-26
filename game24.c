@@ -284,7 +284,7 @@ static char *linearSearch(char *start, char goal) {
 // static_assert in C++)
 #define BUILD_BUG_ON(condition) (void)sizeof(char[1 - 2 * !!(condition)])
 
-static uint16_t hashTree(SyntaxTree tree) {
+static uint16_t hashTree(const SyntaxTree tree) {
   union hashTree {
     struct repr {
       unsigned int first_kind : 2;
@@ -302,7 +302,7 @@ static uint16_t hashTree(SyntaxTree tree) {
   char itab[7] = {0, 1, 2, 3, 4, 5, 6};
   int arenaRight = 4;
   int curNode = 4;
-  struct Node *curOperator = tree + 4;
+  const struct Node *curOperator = tree + 4;
   hashTree.bits.first_kind = curOperator->kind;
   hashTree.bits.first_left = linearSearch(itab, curOperator->v.op.lhs) - itab;
   swap_char(itab + hashTree.bits.first_left, itab + --arenaRight);
