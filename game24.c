@@ -16,7 +16,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -260,6 +259,9 @@ static char *linearSearch(char *start, char goal) {
   return start;
 }
 
+// Linux kernel inspired compile time assert
+#define STATIC_ASSERT(e) (void)(sizeof(struct { int : -!!(e); }))
+
 static uint16_t hashTree(SyntaxTree tree, struct Node *root) {
   union hashTree {
     struct repr {
@@ -274,7 +276,7 @@ static uint16_t hashTree(SyntaxTree tree, struct Node *root) {
     } bits;
     uint16_t hash;
   } hashTree;
-  assert(sizeof(hashTree.bits) == sizeof(hashTree.hash));
+  STATIC_ASSERT(sizeof(hashTree.bits) == sizeof(hashTree.hash));
   char itab[7] = {0, 1, 2, 3, 4, 5, 6};
   int arenaRight = 4;
   int curNode = 4;
