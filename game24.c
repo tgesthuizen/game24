@@ -280,9 +280,9 @@ static char *linearSearch(char *start, char goal) {
   return start;
 }
 
-// Linux kernel inspired compile time assert
-#define STATIC_ASSERT(COND)                                                    \
-  typedef char static_assertion_##__LINE__[(COND) ? 1 : -1]
+// Borrowed form the Linux kernel: Checks a condition at compile time (like
+// static_assert in C++)
+#define BUILD_BUG_ON(condition) (void)sizeof(char[1 - 2 * !!(condition)])
 
 static uint16_t hashTree(SyntaxTree tree) {
   union hashTree {
@@ -298,7 +298,7 @@ static uint16_t hashTree(SyntaxTree tree) {
     } __attribute__((packed)) bits;
     uint16_t hash;
   } hashTree;
-  STATIC_ASSERT(sizeof(hashTree.bits) == sizeof(hashTree.hash));
+  BUILD_BUG_ON(sizeof(hashTree.bits) != sizeof(hashTree.hash));
   char itab[7] = {0, 1, 2, 3, 4, 5, 6};
   int arenaRight = 4;
   int curNode = 4;
