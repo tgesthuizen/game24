@@ -189,7 +189,8 @@ static void findAdjacentNodes(SyntaxTree tree, struct Node *current, int opKind,
                               unsigned char ***arrIdxPtr);
 
 static void analyzeCommutativeOperand(SyntaxTree tree, unsigned char *nodeIdx,
-                                      int opKind, unsigned char ***arrIdxPtr) {
+                                      enum OperatorKind opKind,
+                                      unsigned char ***arrIdxPtr) {
   if (tree[*nodeIdx].kind == node_number) {
     *(*arrIdxPtr)++ = nodeIdx;
   } else if (tree[*nodeIdx].v.op.kind == opKind) {
