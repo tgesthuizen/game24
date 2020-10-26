@@ -38,7 +38,6 @@ static void checkTreeStaysUnchanged(SyntaxTree tree) {
 }
 
 int main() {
-#define THE_NUMS makeNum(1), makeNum(2), makeNum(3), makeNum(4)
   checkTreeCannonIsEqual(
       (SyntaxTree){THE_NUMS, makeOp(op_add, 3, 2), makeOp(op_add, 1, 4),
                    makeOp(op_add, 0, 5)},
