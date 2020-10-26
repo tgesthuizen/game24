@@ -255,9 +255,25 @@ static void hashTree(SyntaxTree tree, struct Node *root) {
     uint16_t result;
   } hashTree;
   assert(sizeof(hashTree.bits) == sizeof(hashTree.result));
-  char itab[all_count] = {0, 1, 2, 3, 4, 5, 6};
+  char itab[7] = {0, 1, 2, 3, 4, 5, 6};
   int arenaRight = 4;
-  
+  int curNode = 4;
+  struct Node *curOperator = tree + 4;
+  hashTree.bits.first_kind = curOperator->kind;
+  hashTree.bits.first_left = linearSearch(itab, curOperator->v.op.lhs) - itab;
+  swap(itab + hashTree.bits.first_left, itab + --arenaRight);
+  hashTree.bits.first_right = linearSearch(itab, curOperator->v.op.rhs) - itab;
+  swap(itab + hashTree.bits.first_right, itab + curNode++);
+  ++curOperator;
+  hashTree.bits.second_kind = curOperator->kind;
+  hashTree.bits.second_left = linearSearch(itab, curOperator->v.op.lhs) - itab;
+  swap(itab + hashTree.bits.second_left, itab + --arenaRight);
+  hashTree.bits.second_right = linearSearch(itab, curOperator->v.op.rhs) - itab;
+  swap(itab + hashTree.bits.second_right, itab + curNode++);
+  ++curOperator;
+  hashTree.bits.third_kind = curOperator->kind;
+  hashTree.bits.third_left = linearSearch(itab, curOperator->v.op.lhs) - itab;
+  swap(itab + hashTree.bits.third_left, itab + --arenaRight);
 }
 
 static void checkAndPrintCallback(const SyntaxTree tree,
