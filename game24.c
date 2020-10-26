@@ -198,23 +198,34 @@ static void findAdjacentNodes(SyntaxTree tree, struct Node *current, int opKind,
   analyzeCommutativeOperand(tree, &current->v.op.rhs, opKind, arrIdxPtr);
 }
 
-static void swapBubbleSort(char **pos1, char **pos2) {
-  char temp = **pos1;
+static void swapBubbleSort(unsigned char **pos1, unsigned char **pos2) {
+  unsigned char temp = **pos1;
   **pos1 = **pos2;
   **pos2 = temp;
 }
 
-static void bubbleSort(char **first, char **last) {
+static void bubbleSort(unsigned char **first, unsigned char **last) {
     bool swapped = false;
     while (!swapped) {
       swapped = true;
-      for (char **pos = first + 1; pos != last; ++pos) {
+      for (unsigned char **pos = first + 1; pos != last; ++pos) {
         if (**pos < **(pos - 1)) {
           swapBubbleSort(pos, pos - 1);
           swapped = false;
         }
       }
     }
+}
+
+static unsigned char **findNullPointer(unsigned char **first, unsigned char **last) {
+  while (first != last) {
+    if (*first != NULL) {
+      first++;
+    } else {
+      break;
+    }
+  }
+  return first;
 }
 
 static void findCommutativeOperator(SyntaxTree tree, struct Node *current) {
@@ -225,7 +236,7 @@ static void findCommutativeOperator(SyntaxTree tree, struct Node *current) {
     unsigned char *operandIdxPtrs[ops_count * 2] = {NULL};
     unsigned char **operandIdxPtrsIndex = operandIdxPtrs;
     findAdjacentNodes(tree, current, current->v.op.kind, &operandIdxPtrsIndex);
-    bubbleSort(operandIdxPtrs, &operandIdxPtrs[ops_count * 2 - 1]);
+    bubbleSort(operandIdxPtrs, findNullPointer(operandIdxPtrs, operandIdxPtrs + ops_count * 2));
   } else {
     findCommutativeOperator(tree, tree + current->v.op.lhs);
     findCommutativeOperator(tree, tree + current->v.op.rhs);
@@ -236,7 +247,7 @@ static void canonicalizeTree(SyntaxTree tree, struct Node *root) {
   findCommutativeOperator(tree, root);
 }
 
-static int *linearSearch(char *start, char goal) {
+static char *linearSearch(char *start, char goal) {
   while (*start != goal) {
     start++;
   }
@@ -280,12 +291,12 @@ static uint16_t hashTree(SyntaxTree tree, struct Node *root) {
   return hashTree.hash;
 }
 
-struct sharedState {
+struct SharedState {
   uint16_t *seenTrees;
   size_t size, capacity;
 };
 
-static uint16_t *upperBound(uint16_t *first, size_t *last, uint16_t hash) {
+static uint16_t *upperBound(uint16_t *first, uint16_t *last, uint16_t hash) {
   while (first + 1 < last) {
     uint16_t *mid = first + (last - first) / 2;
     if (*mid == hash) {
@@ -303,12 +314,12 @@ static uint16_t *upperBound(uint16_t *first, size_t *last, uint16_t hash) {
   }
 }
 
-static void insert(uint16_t hash, uint16_t *pos, struct sharedState *state) {
+static void insert(uint16_t hash, uint16_t *pos, struct SharedState *state) {
   if (state->size == state->capacity) {
     state->capacity *= 2;
-    realloc(state->seenTrees, sizeof(uint16_t) * state->capacity);
+    state->seenTrees = realloc(state->seenTrees, sizeof(uint16_t) * state->capacity);
   }
-  memmove(pos + 1, pos, state->size);
+  memmove(pos + 1, pos, state->seenTrees + state->size - pos);
   *pos = hash;
 }
 
@@ -317,12 +328,15 @@ static void checkAndPrintCallback(const SyntaxTree tree,
                                   void *data) {
   const EvalResult res = evalSyntaxTree(tree, root);
   if (res.valid && res.num == 24) {
-    canonicalizeTree(tree, root);
-    uint16_t hash = hashTree(tree, root);
-    struct sharedState *state = data;
+    SyntaxTree copy;
+    memcpy(&copy, tree, sizeof(SyntaxTree));
+    struct Node *rootCopy = copy + all_count - 1;
+    canonicalizeTree(copy, rootCopy);
+    uint16_t hash = hashTree(copy, rootCopy);
+    struct SharedState *state = data;
     uint16_t *pos = upperBound(state->seenTrees, state->seenTrees + state->size, hash);
     if (*pos != hash) {
-      printSyntaxTree(tree, root);
+      printSyntaxTree(copy, rootCopy);
       insert(hash, pos, state);
     }
   }
@@ -337,7 +351,7 @@ int main() {
       return 1;
     }
   }
-  struct sharedState state = {.seenTrees = {NULL}, .size = 0, .capacity = 0};
+  struct SharedState state = (struct SharedState){.seenTrees = NULL, .size = 0, .capacity = 0};
   iterateAllSyntaxTrees(numbers, checkAndPrintCallback, &state);
   return 0;
 }
