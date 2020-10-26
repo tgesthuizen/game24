@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdint.h>
+#include <string.h>
 
 enum {
   number_count = 4,
@@ -134,7 +135,9 @@ static int compareOps(const enum OperatorKind lhs[ops_count],
 
 static void iterateAllSyntaxTrees(const int numbers[4],
                                   void (*callback)(const SyntaxTree tree,
-                                                   const struct Node *root)) {
+                                                   const struct Node *root,
+                                                   void *data),
+                                  void *data) {
   SyntaxTree tree;
   static const enum OperatorKind finalOps[ops_count] = {op_div, op_div, op_div};
   enum OperatorKind ops[ops_count] = {op_add, op_add, op_add};
@@ -171,7 +174,7 @@ static void iterateAllSyntaxTrees(const int numbers[4],
       curOperator->v.op.rhs = itab[third_rhs];
       swap(itab + third_rhs, itab + curNode++);
       ++curOperator;
-      callback(tree, tree + 6);
+      callback(tree, tree + 6, data);
     }
   }
 }
@@ -195,20 +198,34 @@ static void findAdjacentNodes(SyntaxTree tree, struct Node *current, int opKind,
   analyzeCommutativeOperand(tree, &current->v.op.rhs, opKind, arrIdxPtr);
 }
 
-static void swapValues(char *array[], int indexA, int indexB) {
-    int temp = *(array[indexA]);
-    *(array[indexA]) = *(array[indexB]);
-    *(array[indexB]) = temp;
+static void swapBubbleSort(unsigned char **pos1, unsigned char **pos2) {
+  unsigned char temp = **pos1;
+  **pos1 = **pos2;
+  **pos2 = temp;
 }
 
-static void bubbleSort(char *array[], int length) {
-    for (int sorted = 0; sorted < length - 1; ++sorted) {
-        for (int toSort = 0; toSort < length - 1 - sorted; ++toSort) {
-            if (*(array[toSort]) > *(array[toSort + 1])) {
-                swapValues(array, toSort, toSort + 1);
-            }
+static void bubbleSort(unsigned char **first, unsigned char **last) {
+    bool swapped = false;
+    while (!swapped) {
+      swapped = true;
+      for (unsigned char **pos = first + 1; pos != last; ++pos) {
+        if (**pos < **(pos - 1)) {
+          swapBubbleSort(pos, pos - 1);
+          swapped = false;
         }
+      }
     }
+}
+
+static unsigned char **findNullPointer(unsigned char **first, unsigned char **last) {
+  while (first != last) {
+    if (*first != NULL) {
+      first++;
+    } else {
+      break;
+    }
+  }
+  return first;
 }
 
 static void findCommutativeOperator(SyntaxTree tree, struct Node *current) {
@@ -219,7 +236,7 @@ static void findCommutativeOperator(SyntaxTree tree, struct Node *current) {
     unsigned char *operandIdxPtrs[ops_count * 2] = {NULL};
     unsigned char **operandIdxPtrsIndex = operandIdxPtrs;
     findAdjacentNodes(tree, current, current->v.op.kind, &operandIdxPtrsIndex);
-    bubbleSort(operandIdxPtrs, ops_count * 2);
+    bubbleSort(operandIdxPtrs, findNullPointer(operandIdxPtrs, operandIdxPtrs + ops_count * 2));
   } else {
     findCommutativeOperator(tree, tree + current->v.op.lhs);
     findCommutativeOperator(tree, tree + current->v.op.rhs);
@@ -230,8 +247,15 @@ static void canonicalizeTree(SyntaxTree tree, struct Node *root) {
   findCommutativeOperator(tree, root);
 }
 
-static void hashTree(SyntaxTree tree, struct Node *root) {
-  union {
+static char *linearSearch(char *start, char goal) {
+  while (*start != goal) {
+    start++;
+  }
+  return start;
+}
+
+static uint16_t hashTree(SyntaxTree tree, struct Node *root) {
+  union hashTree {
     struct repr {
       unsigned int first_kind: 2;
       unsigned int second_kind: 2;
@@ -242,19 +266,79 @@ static void hashTree(SyntaxTree tree, struct Node *root) {
       unsigned int second_right: 1;
       unsigned int third_left: 1;
     } bits;
-    uint16_t result;
+    uint16_t hash;
   } hashTree;
-  assert(sizeof(hashTree.bits) == sizeof(hashTree.result));
-  char itab[all_count] = {0, 1, 2, 3, 4, 5, 6};
-  int arena = 4;
-  
+  assert(sizeof(hashTree.bits) == sizeof(hashTree.hash));
+  char itab[7] = {0, 1, 2, 3, 4, 5, 6};
+  int arenaRight = 4;
+  int curNode = 4;
+  struct Node *curOperator = tree + 4;
+  hashTree.bits.first_kind = curOperator->kind;
+  hashTree.bits.first_left = linearSearch(itab, curOperator->v.op.lhs) - itab;
+  swap(itab + hashTree.bits.first_left, itab + --arenaRight);
+  hashTree.bits.first_right = linearSearch(itab, curOperator->v.op.rhs) - itab;
+  swap(itab + hashTree.bits.first_right, itab + curNode++);
+  ++curOperator;
+  hashTree.bits.second_kind = curOperator->kind;
+  hashTree.bits.second_left = linearSearch(itab, curOperator->v.op.lhs) - itab;
+  swap(itab + hashTree.bits.second_left, itab + --arenaRight);
+  hashTree.bits.second_right = linearSearch(itab, curOperator->v.op.rhs) - itab;
+  swap(itab + hashTree.bits.second_right, itab + curNode++);
+  ++curOperator;
+  hashTree.bits.third_kind = curOperator->kind;
+  hashTree.bits.third_left = linearSearch(itab, curOperator->v.op.lhs) - itab;
+  swap(itab + hashTree.bits.third_left, itab + --arenaRight);
+  return hashTree.hash;
+}
+
+struct SharedState {
+  uint16_t *seenTrees;
+  size_t size, capacity;
+};
+
+static uint16_t *upperBound(uint16_t *first, uint16_t *last, uint16_t hash) {
+  while (first + 1 < last) {
+    uint16_t *mid = first + (last - first) / 2;
+    if (*mid == hash) {
+      return mid;
+    } else if (*mid < hash) {
+      first = mid;
+    } else {
+      last = mid;
+    }
+  }
+  if (*first <= hash) {
+    return first + 1;
+  } else {
+    return first;
+  }
+}
+
+static void insert(uint16_t hash, uint16_t *pos, struct SharedState *state) {
+  if (state->size == state->capacity) {
+    state->capacity *= 2;
+    state->seenTrees = realloc(state->seenTrees, sizeof(uint16_t) * state->capacity);
+  }
+  memmove(pos + 1, pos, state->seenTrees + state->size - pos);
+  *pos = hash;
 }
 
 static void checkAndPrintCallback(const SyntaxTree tree,
-                                  const struct Node *root) {
+                                  const struct Node *root,
+                                  void *data) {
   const EvalResult res = evalSyntaxTree(tree, root);
   if (res.valid && res.num == 24) {
-    printSyntaxTree(tree, root);
+    SyntaxTree copy;
+    memcpy(&copy, tree, sizeof(SyntaxTree));
+    struct Node *rootCopy = copy + all_count - 1;
+    canonicalizeTree(copy, rootCopy);
+    uint16_t hash = hashTree(copy, rootCopy);
+    struct SharedState *state = data;
+    uint16_t *pos = upperBound(state->seenTrees, state->seenTrees + state->size, hash);
+    if (*pos != hash) {
+      printSyntaxTree(copy, rootCopy);
+      insert(hash, pos, state);
+    }
   }
 }
 
@@ -267,6 +351,7 @@ int main() {
       return 1;
     }
   }
-  iterateAllSyntaxTrees(numbers, checkAndPrintCallback);
+  struct SharedState state = (struct SharedState){.seenTrees = NULL, .size = 0, .capacity = 0};
+  iterateAllSyntaxTrees(numbers, checkAndPrintCallback, &state);
   return 0;
 }
