@@ -1,4 +1,4 @@
-set(CHECK_PROG upperBound canonicalizeTree)
+set(CHECK_PROG upperBound canonicalizeTree hashTree)
 
 foreach(prog ${CHECK_PROG})
     add_executable(${prog} ${prog}.c)
