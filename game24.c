@@ -259,9 +259,10 @@ static char *linearSearch(char *start, char goal) {
 }
 
 // Linux kernel inspired compile time assert
-#define STATIC_ASSERT(e) (void)(sizeof(struct { int : -!!(e); }))
+#define STATIC_ASSERT(COND)                                                    \
+  typedef char static_assertion_##__LINE__[(COND) ? 1 : -1]
 
-static uint16_t hashTree(SyntaxTree tree, struct Node *root) {
+static uint16_t hashTree(SyntaxTree tree) {
   union hashTree {
     struct repr {
       unsigned int first_kind : 2;
@@ -272,7 +273,7 @@ static uint16_t hashTree(SyntaxTree tree, struct Node *root) {
       unsigned int second_left : 2;
       unsigned int second_right : 1;
       unsigned int third_left : 1;
-    } bits;
+    } __attribute__((packed)) bits;
     uint16_t hash;
   } hashTree;
   STATIC_ASSERT(sizeof(hashTree.bits) == sizeof(hashTree.hash));
@@ -339,7 +340,7 @@ static void checkAndPrintCallback(const SyntaxTree tree,
     memcpy(&copy, tree, sizeof(SyntaxTree));
     struct Node *rootCopy = copy + all_count - 1;
     canonicalizeTree(copy, rootCopy);
-    uint16_t hash = hashTree(copy, rootCopy);
+    uint16_t hash = hashTree(copy);
     struct SharedState *state = data;
     uint16_t *pos =
         upperBound(state->seenTrees, state->seenTrees + state->size, hash);
