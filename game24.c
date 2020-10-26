@@ -1,5 +1,6 @@
 /* game24 - Solves a game 24 scenario
  * Copyright (C) 2020 Tim Gesthuizen <tim.gesthuizen@yahoo.de>
+ * Copyright (C) 2020 Tom Couperus <tcouperus@hotmail.nl>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
