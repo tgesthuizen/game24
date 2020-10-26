@@ -306,21 +306,18 @@ struct SharedState {
 };
 
 static uint16_t *upperBound(uint16_t *first, uint16_t *last, uint16_t hash) {
-  while (first + 1 < last) {
-    uint16_t *mid = first + (last - first) / 2;
-    if (*mid == hash) {
-      return mid;
-    } else if (*mid < hash) {
-      first = mid;
+  size_t sizeLeft = last - first;
+  while (sizeLeft > 0) {
+    size_t step = sizeLeft / 2;
+    uint16_t *it = first + step;
+    if (hash >= *it) {
+      first = ++it;
+      sizeLeft -= step + 1;
     } else {
-      last = mid;
+      sizeLeft = step;
     }
   }
-  if (*first <= hash) {
-    return first + 1;
-  } else {
-    return first;
-  }
+  return first;
 }
 
 static void insert(uint16_t hash, uint16_t *pos, struct SharedState *state) {
