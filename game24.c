@@ -286,7 +286,7 @@ static uint16_t hashTree(const SyntaxTree tree) {
   const unsigned char *curOffset = offsets;
   uint16_t result = 0;
 #define PLACE_BITS(bits) result |= ((unsigned char)(bits)) << *curOffset++;
-  char itab[7] = {0, 1, 2, 3, 4, 5, 6};
+  char itab[all_count] = {0, 1, 2, 3, 4, 5, 6};
   int arenaRight = 4;
   int curNode = 4;
   for (const struct Node *curOperator = tree + number_count,
