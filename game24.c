@@ -124,18 +124,13 @@ static void printSyntaxTree(const SyntaxTree tree, const struct Node *curNode) {
 }
 
 static void incrementOperators(enum OperatorKind ops[ops_count]) {
-  ++ops[0];
-  if (ops[0] != op_div + 1)
-    return;
-  ops[0] = op_add;
-  ++ops[1];
-  if (ops[1] != op_div + 1)
-    return;
-  ops[1] = op_add;
-  ++ops[2];
-  if (ops[2] != op_div + 1)
-    return;
-  ops[2] = op_add;
+  for (size_t i = 0; i < ops_count; ++i) {
+    ++ops[i];
+    if (ops[i] != op_div + 1) {
+      return;
+    }
+    ops[i] = op_add;
+  }
 }
 
 static void swap_char(char *a, char *b) {
