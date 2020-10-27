@@ -329,8 +329,10 @@ static uint16_t *upperBound(uint16_t *first, uint16_t *last, uint16_t hash) {
 static void insert(uint16_t hash, uint16_t *pos, struct SharedState *state) {
   if (state->size == state->capacity) {
     state->capacity *= 2;
+    const size_t offset = pos - state->seenTrees;
     state->seenTrees =
         xrealloc(state->seenTrees, sizeof(uint16_t) * state->capacity);
+    pos = state->seenTrees + offset;
   }
   const size_t movesize = (state->seenTrees + state->size) - pos;
   memmove(pos + 1, pos, movesize * sizeof(uint16_t));
