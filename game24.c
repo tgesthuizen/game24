@@ -329,8 +329,10 @@ static void insert(uint16_t hash, uint16_t *pos, struct SharedState *state) {
     state->seenTrees =
         xrealloc(state->seenTrees, sizeof(uint16_t) * state->capacity);
   }
-  memmove(pos + 1, pos, state->seenTrees + state->size - pos);
+  const size_t movesize = (state->seenTrees + state->size) - pos;
+  memmove(pos + 1, pos, movesize * sizeof(uint16_t));
   *pos = hash;
+  ++state->size;
 }
 
 static void checkAndPrintCallback(const SyntaxTree tree,
