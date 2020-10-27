@@ -345,9 +345,9 @@ static void checkAndPrintCallback(const SyntaxTree tree,
     canonicalizeTree(copy, rootCopy);
     uint16_t hash = hashTree(copy);
     struct SharedState *state = data;
-    uint16_t *pos =
-        upperBound(state->seenTrees, state->seenTrees + state->size, hash);
-    if (*pos != hash) {
+    uint16_t *end = state->seenTrees + state->size,
+             *pos = upperBound(state->seenTrees, end, hash);
+    if (pos == end || *pos != hash) {
       printSyntaxTree(copy, rootCopy);
       insert(hash, pos, state);
     }
