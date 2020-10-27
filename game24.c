@@ -236,13 +236,14 @@ static void bubbleSort(unsigned char **first, unsigned char **last) {
   }
 }
 
-static unsigned char **findNullPointer(unsigned char **first,
-                                       unsigned char **last) {
-  while (first != last && *first) {
-    ++first;
+#define MAKE_LINEAR_SEARCH(name, type)                                         \
+  static type *name(type *first, type *last, type target) {                    \
+    while (first != last && *first != target) {                                \
+      ++first;                                                                 \
+    }                                                                          \
+    return first;                                                              \
   }
-  return first;
-}
+MAKE_LINEAR_SEARCH(findPointer, unsigned char *)
 
 static void swap_node(struct Node *lhs, struct Node *rhs) {
   const struct Node tmp = *lhs;
@@ -258,8 +259,9 @@ static void findCommutativeOperator(SyntaxTree tree, struct Node *current) {
     unsigned char *operandIdxPtrs[ops_count * 2] = {NULL};
     unsigned char **operandIdxPtrsIndex = operandIdxPtrs;
     findAdjacentNodes(tree, current, current->v.op.kind, &operandIdxPtrsIndex);
-    bubbleSort(operandIdxPtrs,
-               findNullPointer(operandIdxPtrs, operandIdxPtrs + ops_count * 2));
+    bubbleSort(
+        operandIdxPtrs,
+        findPointer(operandIdxPtrs, operandIdxPtrs + ops_count * 2, NULL));
   } else {
     struct Node *lhs = tree + current->v.op.lhs,
                 *rhs = tree + current->v.op.rhs;
@@ -276,12 +278,7 @@ static void canonicalizeTree(SyntaxTree tree, struct Node *root) {
   findCommutativeOperator(tree, root);
 }
 
-static char *linearSearch(char *start, char goal) {
-  while (*start != goal) {
-    start++;
-  }
-  return start;
-}
+MAKE_LINEAR_SEARCH(findChar, char)
 
 static uint16_t hashTree(const SyntaxTree tree) {
   static const unsigned char offsets[ops_count * 3] = {0,  6, 8,  2, 10,
@@ -296,10 +293,10 @@ static uint16_t hashTree(const SyntaxTree tree) {
                          *end = tree + all_count;
        curOperator != end; ++curOperator) {
     PLACE_BITS(curOperator->v.op.kind);
-    char *const lhs = linearSearch(itab, curOperator->v.op.lhs);
+    char *const lhs = findChar(itab, itab + all_count, curOperator->v.op.lhs);
     PLACE_BITS(lhs - itab);
     swap_char(lhs, itab + --arenaRight);
-    char *const rhs = linearSearch(itab, curOperator->v.op.rhs);
+    char *const rhs = findChar(itab, itab + all_count, curOperator->v.op.rhs);
     PLACE_BITS(rhs - itab);
     swap_char(rhs, itab + curNode++);
   }
