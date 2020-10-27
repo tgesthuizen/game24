@@ -280,45 +280,27 @@ static char *linearSearch(char *start, char goal) {
   return start;
 }
 
-// Borrowed form the Linux kernel: Checks a condition at compile time (like
-// static_assert in C++)
-#define BUILD_BUG_ON(condition) (void)sizeof(char[1 - 2 * !!(condition)])
-
 static uint16_t hashTree(const SyntaxTree tree) {
-  union hashTree {
-    struct repr {
-      unsigned int first_kind : 2;
-      unsigned int second_kind : 2;
-      unsigned int third_kind : 2;
-      unsigned int first_left : 2;
-      unsigned int first_right : 2;
-      unsigned int second_left : 2;
-      unsigned int second_right : 1;
-      unsigned int third_left : 1;
-    } __attribute__((packed)) bits;
-    uint16_t hash;
-  } hashTree;
-  BUILD_BUG_ON(sizeof(hashTree.bits) != sizeof(hashTree.hash));
+  static const unsigned char offsets[ops_count * 3] = {0,  6, 8,  2, 10,
+                                                       12, 4, 13, 14};
+  const unsigned char *curOffset = offsets;
+  uint16_t result = 0;
+#define PLACE_BITS(bits) result |= ((unsigned char)(bits)) << *curOffset++;
   char itab[7] = {0, 1, 2, 3, 4, 5, 6};
   int arenaRight = 4;
   int curNode = 4;
-  const struct Node *curOperator = tree + 4;
-  hashTree.bits.first_kind = curOperator->kind;
-  hashTree.bits.first_left = linearSearch(itab, curOperator->v.op.lhs) - itab;
-  swap_char(itab + hashTree.bits.first_left, itab + --arenaRight);
-  hashTree.bits.first_right = linearSearch(itab, curOperator->v.op.rhs) - itab;
-  swap_char(itab + hashTree.bits.first_right, itab + curNode++);
-  ++curOperator;
-  hashTree.bits.second_kind = curOperator->kind;
-  hashTree.bits.second_left = linearSearch(itab, curOperator->v.op.lhs) - itab;
-  swap_char(itab + hashTree.bits.second_left, itab + --arenaRight);
-  hashTree.bits.second_right = linearSearch(itab, curOperator->v.op.rhs) - itab;
-  swap_char(itab + hashTree.bits.second_right, itab + curNode++);
-  ++curOperator;
-  hashTree.bits.third_kind = curOperator->kind;
-  hashTree.bits.third_left = linearSearch(itab, curOperator->v.op.lhs) - itab;
-  swap_char(itab + hashTree.bits.third_left, itab + --arenaRight);
-  return hashTree.hash;
+  for (const struct Node *curOperator = tree + number_count,
+                         *end = tree + all_count;
+       curOperator != end; ++curOperator) {
+    PLACE_BITS(curOperator->v.op.kind);
+    char *const lhs = linearSearch(itab, curOperator->v.op.lhs);
+    PLACE_BITS(lhs - itab);
+    swap_char(lhs, itab + --arenaRight);
+    char *const rhs = linearSearch(itab, curOperator->v.op.rhs);
+    PLACE_BITS(rhs - itab);
+    swap_char(rhs, itab + curNode++);
+  }
+  return result;
 }
 
 struct SharedState {
