@@ -243,12 +243,8 @@ static void bubbleSort(unsigned char **first, unsigned char **last) {
 
 static unsigned char **findNullPointer(unsigned char **first,
                                        unsigned char **last) {
-  while (first != last) {
-    if (*first != NULL) {
-      first++;
-    } else {
-      break;
-    }
+  while (first != last && *first) {
+    ++first;
   }
   return first;
 }
