@@ -1,4 +1,4 @@
-set(CHECK_PROG upperBound canonicalizeTree hashTree insert)
+set(CHECK_PROG upperBound canonicalizeTree hashTree insert findNullPointer)
 
 foreach(prog ${CHECK_PROG})
     add_executable(${prog} ${prog}.c)
