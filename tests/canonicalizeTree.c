@@ -53,6 +53,16 @@ int main() {
                    makeOp(op_mul, 3, 5)},
       (SyntaxTree){THE_NUMS, makeOp(op_add, 1, 2), makeOp(op_add, 4, 0),
                    makeOp(op_mul, 3, 5)});
+  // In f593971 the following trees were considered equal.
+  // (4 * (6 * (7 / 5)))
+  // ((4 * 6) * (7 / 5))
+  checkTreeCannonIsEqual(
+      (SyntaxTree){makeNum(4), makeNum(5), makeNum(6), makeNum(7),
+                   makeOp(op_div, 3, 1), makeOp(op_mul, 2, 4),
+                   makeOp(op_mul, 0, 5)},
+      (SyntaxTree){makeNum(4), makeNum(5), makeNum(6), makeNum(7),
+                   makeOp(op_div, 3, 1), makeOp(op_mul, 0, 2),
+                   makeOp(op_mul, 4, 5)});
   checkTreeStaysUnchanged((SyntaxTree){THE_NUMS, makeOp(op_sub, 0, 1),
                                        makeOp(op_sub, 2, 3),
                                        makeOp(op_sub, 4, 5)});
