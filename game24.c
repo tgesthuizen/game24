@@ -244,6 +244,12 @@ static unsigned char **findNullPointer(unsigned char **first,
   return first;
 }
 
+static void swap_node(struct Node *lhs, struct Node *rhs) {
+  const struct Node tmp = *lhs;
+  *lhs = *rhs;
+  *rhs = tmp;
+}
+
 static void findCommutativeOperator(SyntaxTree tree, struct Node *current) {
   if (current->kind == node_number) {
     return;
@@ -255,8 +261,14 @@ static void findCommutativeOperator(SyntaxTree tree, struct Node *current) {
     bubbleSort(operandIdxPtrs,
                findNullPointer(operandIdxPtrs, operandIdxPtrs + ops_count * 2));
   } else {
-    findCommutativeOperator(tree, tree + current->v.op.lhs);
-    findCommutativeOperator(tree, tree + current->v.op.rhs);
+    struct Node *lhs = tree + current->v.op.lhs,
+                *rhs = tree + current->v.op.rhs;
+    if (lhs > rhs) {
+      swap_node(lhs, rhs);
+      swap_uchar(&current->v.op.lhs, &current->v.op.rhs);
+    }
+    findCommutativeOperator(tree, lhs);
+    findCommutativeOperator(tree, rhs);
   }
 }
 
