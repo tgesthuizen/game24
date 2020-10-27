@@ -17,6 +17,7 @@
  */
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -133,16 +134,16 @@ static void incrementOperators(enum OperatorKind ops[ops_count]) {
   }
 }
 
-static void swap_char(char *a, char *b) {
-  char c = *a;
-  *a = *b;
-  *b = c;
+static void swap_impl(void *a, void *b, void *restrict c, size_t size) {
+  memcpy(c, a, size);
+  memmove(a, b, size);
+  memcpy(b, c, size);
 }
-static void swap_uchar(unsigned char *a, unsigned char *b) {
-  unsigned char c = *a;
-  *a = *b;
-  *b = c;
-}
+#define swap(a, b)                                                             \
+  swap_impl(                                                                   \
+      (a), (b),                                                                \
+      (char[sizeof(*(a)) == sizeof(*(b)) ? (ptrdiff_t)sizeof(*(a)) : -1]){0},  \
+      sizeof(*(a)));
 
 static int compareOps(const enum OperatorKind lhs[ops_count],
                       const enum OperatorKind rhs[ops_count]) {
@@ -181,19 +182,19 @@ static void iterateAllSyntaxTrees(const int numbers[4],
       int curNode = 4;
       struct Node *curOperator = tree + 4;
       curOperator->v.op.lhs = itab[first_lhs];
-      swap_char(itab + first_lhs, itab + --arenaRight);
+      swap(itab + first_lhs, itab + --arenaRight);
       curOperator->v.op.rhs = itab[first_rhs];
-      swap_char(itab + first_rhs, itab + curNode++);
+      swap(itab + first_rhs, itab + curNode++);
       ++curOperator;
       curOperator->v.op.lhs = itab[second_lhs];
-      swap_char(itab + second_lhs, itab + --arenaRight);
+      swap(itab + second_lhs, itab + --arenaRight);
       curOperator->v.op.rhs = itab[second_rhs];
-      swap_char(itab + second_rhs, itab + curNode++);
+      swap(itab + second_rhs, itab + curNode++);
       ++curOperator;
       curOperator->v.op.lhs = itab[third_lhs];
-      swap_char(itab + third_lhs, itab + --arenaRight);
+      swap(itab + third_lhs, itab + --arenaRight);
       curOperator->v.op.rhs = itab[third_rhs];
-      swap_char(itab + third_rhs, itab + curNode++);
+      swap(itab + third_rhs, itab + curNode++);
       ++curOperator;
       callback(tree, tree + 6, data);
     }
@@ -229,7 +230,7 @@ static void bubbleSort(unsigned char **first, unsigned char **last) {
     swapped = true;
     for (unsigned char **pos = first + 1; pos != last; ++pos) {
       if (**pos < **(pos - 1)) {
-        swap_uchar(*pos, *(pos - 1));
+        swap(*pos, *(pos - 1));
         swapped = false;
       }
     }
@@ -244,12 +245,6 @@ static void bubbleSort(unsigned char **first, unsigned char **last) {
     return first;                                                              \
   }
 MAKE_LINEAR_SEARCH(findPointer, unsigned char *)
-
-static void swap_node(struct Node *lhs, struct Node *rhs) {
-  const struct Node tmp = *lhs;
-  *lhs = *rhs;
-  *rhs = tmp;
-}
 
 static void findCommutativeOperator(SyntaxTree tree, struct Node *current) {
   if (current->kind == node_number) {
@@ -266,8 +261,8 @@ static void findCommutativeOperator(SyntaxTree tree, struct Node *current) {
     struct Node *lhs = tree + current->v.op.lhs,
                 *rhs = tree + current->v.op.rhs;
     if (lhs > rhs) {
-      swap_node(lhs, rhs);
-      swap_uchar(&current->v.op.lhs, &current->v.op.rhs);
+      swap(lhs, rhs);
+      swap(&current->v.op.lhs, &current->v.op.rhs);
     }
     findCommutativeOperator(tree, lhs);
     findCommutativeOperator(tree, rhs);
@@ -295,10 +290,10 @@ static uint16_t hashTree(const SyntaxTree tree) {
     PLACE_BITS(curOperator->v.op.kind);
     char *const lhs = findChar(itab, itab + all_count, curOperator->v.op.lhs);
     PLACE_BITS(lhs - itab);
-    swap_char(lhs, itab + --arenaRight);
+    swap(lhs, itab + --arenaRight);
     char *const rhs = findChar(itab, itab + all_count, curOperator->v.op.rhs);
     PLACE_BITS(rhs - itab);
-    swap_char(rhs, itab + curNode++);
+    swap(rhs, itab + curNode++);
   }
   return result;
 }
