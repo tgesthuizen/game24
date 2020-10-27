@@ -23,7 +23,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-static __attribute__((noreturn)) void handleOutOfMemory() {
+#ifdef __GNUC__
+#define NORETURN __attribute__((noreturn))
+#define CANT_REACH __builtin_unreachable();
+#else
+#define NORETURN
+#define CANT_REACH
+#endif
+
+static NORETURN void handleOutOfMemory() {
   fputs("System is out of memory, aborting", stderr);
   abort();
 }
@@ -101,7 +109,7 @@ static EvalResult evalSyntaxTree(const SyntaxTree tree,
     }
   }
   }
-  __builtin_unreachable();
+  CANT_REACH
 }
 
 static void printSyntaxTreeImpl(const SyntaxTree tree,
