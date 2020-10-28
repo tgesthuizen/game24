@@ -234,13 +234,13 @@ static void findAdjacentNodes(SyntaxTree tree, struct Node *current, int opKind,
 }
 
 static void bubbleSort(unsigned char **first, unsigned char **last) {
-  bool swapped = false;
-  while (!swapped) {
-    swapped = true;
+  bool sorted = false;
+  while (!sorted) {
+    sorted = true;
     for (unsigned char **pos = first + 1; pos != last; ++pos) {
       if (**pos < **(pos - 1)) {
         swap(*pos, *(pos - 1));
-        swapped = false;
+        sorted = false;
       }
     }
   }
