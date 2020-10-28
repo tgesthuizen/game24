@@ -3,25 +3,25 @@
 
 #undef main
 
-static bool checkTreesAreSorted(struct SharedState *state) {
+int result = 0;
+
+static void checkTreesAreSorted(struct SharedState *state) {
   if (state->size < 2) {
-    return true;
+    return;
   }
-  bool result = true;
   for (uint16_t *cur = state->seenTrees + 1,
                 *end = state->seenTrees + state->size;
        cur != end; ++cur) {
     if (*cur <= *(cur - 1)) {
       printf("Elements %d and %d aren't sorted: %d vs %d\n",
-             (int)(cur - 1 - state->seenTrees), (int)(cur - state->seenTrees),
+             (int)(cur - state->seenTrees - 1), (int)(cur - state->seenTrees),
              (int)*(cur - 1), (int)*cur);
-      result = false;
+      result = 1;
     }
   }
-  return result;
 }
 
-int main() {
+static void checkGenericInsert() {
   struct SharedState state = (struct SharedState){
       .seenTrees = xmalloc(sizeof(uint16_t) * initial_cache_size),
       .size = 0,
@@ -33,10 +33,18 @@ int main() {
   for (int i = 0; i < data_size; ++i) {
     uint16_t *const insertionPoint =
         upperBound(state.seenTrees, state.seenTrees + state.size, data[i]);
-    insert(data[i], insertionPoint, &state);
-    if (!checkTreesAreSorted(&state)) {
+    if (*insertionPoint != data[i]) {
+      insert(data[i], insertionPoint, &state);
+    }
+    checkTreesAreSorted(&state);
+    if (result) {
       break;
     }
   }
   free(state.seenTrees);
+}
+
+int main() {
+  checkGenericInsert();
+  return result;
 }
