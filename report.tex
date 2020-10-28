@@ -288,6 +288,11 @@ This can be extended to commutativity by storing all operands of
 adjacent commutative and associative nodes in a list and sorting the
 list at the end.
 See figure~\ref{fig:commutcanon} for an example.
+In addition, if the operand indices of non commutative operators are
+not ordered, the operands and indices need to be swapped.
+Otherwise trees with non commutative operators might be printed
+multiple times just because of a different layout in memory of the
+same tree.
 
 \subsection{Hashing}
 
