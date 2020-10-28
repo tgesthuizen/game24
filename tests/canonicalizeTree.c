@@ -4,6 +4,7 @@
 #undef main
 
 #include "common.inc"
+int result = 0;
 
 static void checkTreeCannonIsEqual(SyntaxTree lhs, SyntaxTree rhs) {
   SyntaxTree lhsCopy, rhsCopy;
@@ -21,6 +22,7 @@ static void checkTreeCannonIsEqual(SyntaxTree lhs, SyntaxTree rhs) {
     printf(" vs. ");
     printFullTree(rhs);
     printf(")\n");
+    result = 1;
   }
 }
 
@@ -34,6 +36,7 @@ static void checkTreeStaysUnchanged(SyntaxTree tree) {
     printf(" -> ");
     printFullTree(copy);
     putchar('\n');
+    result = 1;
   }
 }
 
@@ -66,4 +69,5 @@ int main() {
   checkTreeStaysUnchanged((SyntaxTree){THE_NUMS, makeOp(op_sub, 0, 1),
                                        makeOp(op_sub, 2, 3),
                                        makeOp(op_sub, 4, 5)});
+  return result;
 }

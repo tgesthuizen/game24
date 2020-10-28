@@ -5,12 +5,15 @@
 
 #include "common.inc"
 
+int result = 0;
+
 static void checkSameTreeAlwaysHashesTheSame(const SyntaxTree x) {
   if (hashTree(x) != hashTree(x)) {
     printf("%s: %d: Hash algorithm is not deterministic for tree ", __FILE__,
            __LINE__);
     printFullTree(x);
     putchar('\n');
+    result = 1;
   }
 }
 
@@ -45,6 +48,7 @@ static void checkGeneratedTreesDontHashTheSameCallback(const SyntaxTree x,
              __FILE__, __LINE__, (int)*cur, (int)hash);
       printFullTree(x);
       putchar('\n');
+      result = 1;
     }
   }
   memmove(buffer->data + 1, buffer->data,
@@ -59,4 +63,5 @@ int main() {
   struct ring_buffer buffer = (struct ring_buffer){.filled = 0, .data = {0}};
   iterateAllSyntaxTrees(nums, &checkGeneratedTreesDontHashTheSameCallback,
                         &buffer);
+  return result;
 }
