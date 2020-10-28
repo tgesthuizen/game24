@@ -176,19 +176,20 @@ static void iterateAllSyntaxTrees(const int numbers[4],
 #define FOR_VAR(name, top) for (int name = 0; name < top; ++name)
 #define FOR_OPERAND(name, top)                                                 \
   FOR_VAR(name##_lhs, top) FOR_VAR(name##_rhs, top - 1)
-    FOR_OPERAND(first, 4) FOR_OPERAND(second, 3) FOR_OPERAND(third, 2) {
+    FOR_OPERAND(first, number_count)
+    FOR_OPERAND(second, number_count - 1) FOR_OPERAND(third, number_count - 2) {
       // Setup the tree
-      for (int i = 0; i < 4; ++i) {
+      for (int i = 0; i < number_count; ++i) {
         tree[i] = (struct Node){.kind = node_number, {.n = numbers[i]}};
       }
-      for (int i = 0; i < 3; ++i) {
+      for (int i = 0; i < ops_count; ++i) {
         tree[i + 4] =
             (struct Node){.kind = node_operator, {.op = {ops[i], -1, -1}}};
       }
-      char itab[7] = {0, 1, 2, 3, 4, 5, 6};
-      int arenaRight = 4;
-      int curNode = 4;
-      struct Node *curOperator = tree + 4;
+      char itab[all_count] = {0, 1, 2, 3, 4, 5, 6};
+      int arenaRight = number_count;
+      int curNode = number_count;
+      struct Node *curOperator = tree + number_count;
       curOperator->v.op.lhs = itab[first_lhs];
       swap(itab + first_lhs, itab + --arenaRight);
       curOperator->v.op.rhs = itab[first_rhs];
@@ -204,7 +205,7 @@ static void iterateAllSyntaxTrees(const int numbers[4],
       curOperator->v.op.rhs = itab[third_rhs];
       swap(itab + third_rhs, itab + curNode++);
       ++curOperator;
-      callback(tree, tree + 6, data);
+      callback(tree, tree + all_count - 1, data);
     }
   }
 }
@@ -281,7 +282,7 @@ static void canonicalizeTree(SyntaxTree tree, struct Node *root) {
   findCommutativeOperator(tree, root);
 }
 
-MAKE_LINEAR_SEARCH(findChar, char)
+MAKE_LINEAR_SEARCH(findUChar, unsigned char)
 
 static uint16_t hashTree(const SyntaxTree tree) {
   static const unsigned char offsets[ops_count * 3] = {0,  6, 8,  2, 10,
@@ -289,17 +290,19 @@ static uint16_t hashTree(const SyntaxTree tree) {
   const unsigned char *curOffset = offsets;
   uint16_t result = 0;
 #define PLACE_BITS(bits) result |= ((unsigned char)(bits)) << *curOffset++;
-  char itab[all_count] = {0, 1, 2, 3, 4, 5, 6};
-  int arenaRight = 4;
-  int curNode = 4;
+  unsigned char itab[all_count] = {0, 1, 2, 3, 4, 5, 6};
+  int arenaRight = number_count;
+  int curNode = number_count;
   for (const struct Node *curOperator = tree + number_count,
                          *end = tree + all_count;
        curOperator != end; ++curOperator) {
     PLACE_BITS(curOperator->v.op.kind);
-    char *const lhs = findChar(itab, itab + all_count, curOperator->v.op.lhs);
+    unsigned char *const lhs =
+        findUChar(itab, itab + all_count, curOperator->v.op.lhs);
     PLACE_BITS(lhs - itab);
     swap(lhs, itab + --arenaRight);
-    char *const rhs = findChar(itab, itab + all_count, curOperator->v.op.rhs);
+    unsigned char *const rhs =
+        findUChar(itab, itab + all_count, curOperator->v.op.rhs);
     PLACE_BITS(rhs - itab);
     swap(rhs, itab + curNode++);
   }
