@@ -1,4 +1,4 @@
-set(CHECK_PROG upperBound canonicalizeTree hashTree insert findPointer swap)
+set(CHECK_PROG upperBound canonicalizeTree hashTree insert swap)
 
 foreach(prog ${CHECK_PROG})
     add_executable(${prog} ${prog}.c)
