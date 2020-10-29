@@ -309,7 +309,6 @@ static void findCommutativeOperator(SyntaxTree tree, unsigned char current) {
   if (tree[current].kind == node_number) {
     return;
   }
-  canonicalizeMemoryRepr(tree, &tree[current].v.op);
   const enum OperatorKind kind = tree[current].v.op.kind;
   if (kind == op_add || kind == op_mul) {
     struct CommutativeChunkState state = {.opKind = kind,
@@ -322,6 +321,7 @@ static void findCommutativeOperator(SyntaxTree tree, unsigned char current) {
   } else {
     const unsigned char lhs = tree[current].v.op.lhs,
                         rhs = tree[current].v.op.rhs;
+    canonicalizeMemoryRepr(tree, &tree[current].v.op);
     findCommutativeOperator(tree, lhs);
     findCommutativeOperator(tree, rhs);
   }
