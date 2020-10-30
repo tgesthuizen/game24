@@ -66,6 +66,14 @@ int main() {
       (SyntaxTree){makeNum(4), makeNum(5), makeNum(6), makeNum(7),
                    makeOp(op_div, 3, 1), makeOp(op_mul, 0, 2),
                    makeOp(op_mul, 4, 5)});
+  // In 2deb10b the following trees were considered equal.
+  // ((1 + 3) * (2 + 4))
+  // ((2 + 4) * (1 + 3))
+  checkTreeCannonIsEqual(
+      (SyntaxTree){THE_NUMS, makeOp(op_add, 0, 2), makeOp(op_add, 3, 1),
+                   makeOp(op_mul, 4, 5)},
+      (SyntaxTree){THE_NUMS, makeOp(op_add, 1, 3), makeOp(op_add, 0, 2),
+                   makeOp(op_mul, 5, 4)});
   checkTreeStaysUnchanged((SyntaxTree){THE_NUMS, makeOp(op_sub, 0, 1),
                                        makeOp(op_sub, 2, 3),
                                        makeOp(op_sub, 4, 5)});

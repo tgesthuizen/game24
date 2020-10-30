@@ -285,6 +285,10 @@ static void bubbleSort(unsigned char *first, unsigned char *last) {
   }
 }
 
+static uint16_t maxOperand(struct Operator *op) {
+  return op->lhs >= op->rhs ? op->lhs : op->rhs;
+}
+
 static void rewriteCommutativeChain(SyntaxTree tree, unsigned char current,
                                     struct CommutativeChunkState *state) {
   bubbleSort(state->operands, state->operands + state->operandIndex);
@@ -292,8 +296,16 @@ static void rewriteCommutativeChain(SyntaxTree tree, unsigned char current,
   for (; current != state->lastNodeIndex; current = tree[current].v.op.rhs) {
     tree[current].v.op.lhs = state->operands[idx++];
   }
-  tree[current].v.op.lhs = state->operands[idx++];
-  tree[current].v.op.rhs = state->operands[idx++];
+  uint16_t lhs, rhs;
+  tree[current].v.op.lhs = lhs = state->operands[idx++];
+  tree[current].v.op.rhs = rhs = state->operands[idx++];
+  if (tree[lhs].kind == node_operator && tree[rhs].kind == node_operator) {
+    const uint16_t maxOpLhs = maxOperand(&tree[lhs].v.op),
+                   maxOpRhs = maxOperand(&tree[rhs].v.op);
+    if(maxOpLhs > maxOpRhs) {
+      swap(tree + lhs, tree + rhs);
+    }
+  }
   assert(idx == state->operandIndex);
 }
 
