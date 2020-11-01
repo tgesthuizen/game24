@@ -331,7 +331,7 @@ static void canonicalizeTree(SyntaxTree tree, struct Node *root) {
   findCommutativeOperator(tree, root - tree);
   struct Node *rootLhs = tree + root->v.op.lhs,
               *rootRhs = tree + root->v.op.rhs;
-  if (rootLhs->kind == node_operator && rootRhs->kind == node_operator) {
+  if (rootLhs->kind == node_operator && rootRhs->kind == node_operator && (root->v.op.kind == op_add || root->v.op.kind == op_mul)) {
     if(rootRhs->v.op.lhs < rootLhs->v.op.lhs) {
       unsigned char temp = root->v.op.lhs;
       root->v.op.lhs = root->v.op.rhs;
