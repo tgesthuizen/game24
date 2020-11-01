@@ -329,6 +329,15 @@ static void findCommutativeOperator(SyntaxTree tree, unsigned char current) {
 
 static void canonicalizeTree(SyntaxTree tree, struct Node *root) {
   findCommutativeOperator(tree, root - tree);
+  struct Node *rootLhs = tree + root->v.op.lhs,
+              *rootRhs = tree + root->v.op.rhs;
+  if (rootLhs->kind == node_operator && rootRhs->kind == node_operator) {
+    if(rootRhs->v.op.lhs < rootLhs->v.op.lhs) {
+      unsigned char temp = root->v.op.lhs;
+      root->v.op.lhs = root->v.op.rhs;
+      root->v.op.rhs = temp;
+    }
+  }
 }
 
 MAKE_LINEAR_SEARCH(findUChar, unsigned char)
