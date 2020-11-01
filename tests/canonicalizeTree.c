@@ -22,6 +22,14 @@ static void checkTreeCannonIsEqual(SyntaxTree lhs, SyntaxTree rhs) {
     printf(" vs. ");
     printFullTree(rhs);
     printf(")\n");
+    debugPrintTree(lhsCopy);
+    printf(" -> ");
+    debugPrintTree(lhs);
+    printf(" vs. \n");
+    debugPrintTree(rhsCopy);
+    printf(" -> ");
+    debugPrintTree(rhs);
+    putchar('\n');
     result = 1;
   }
 }
