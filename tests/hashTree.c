@@ -31,6 +31,8 @@ struct ring_buffer {
   uint16_t data[ring_buffer_size];
 };
 
+#define MIN(a, b) ((a) <= (b) ? (a) : (b))
+
 static void checkGeneratedTreesDontHashTheSameCallback(const SyntaxTree x,
                                                        const struct Node *root,
                                                        void *data) {

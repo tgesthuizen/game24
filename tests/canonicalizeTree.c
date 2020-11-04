@@ -48,6 +48,23 @@ static void checkTreeStaysUnchanged(SyntaxTree tree) {
   }
 }
 
+#include "countTreeNodes.inc"
+static void checkTreeStaysFullyAccessable(SyntaxTree tree) {
+  SyntaxTree copy;
+  memcpy(copy, tree, sizeof(SyntaxTree));
+  canonicalizeTree(tree, tree + all_count - 1);
+  struct CountState state = {.nums = 0, .ops = 0};
+  recurseCountTree(tree, tree + all_count - 1, &state);
+  if (state.nums != number_count || state.ops != ops_count) {
+    printf("%s: %d: Tree is broken! (%d nums, %d ops)\n", __FILE__, __LINE__,
+           (int)state.nums, (int)state.ops);
+    debugPrintTree(copy);
+    fputs("-> ", stdout);
+    debugPrintTree(tree);
+    result = 1;
+  }
+}
+
 int main() {
   checkTreeCannonIsEqual(
       (SyntaxTree){THE_NUMS, makeOp(op_add, 3, 2), makeOp(op_add, 1, 4),
@@ -82,8 +99,17 @@ int main() {
                    makeOp(op_mul, 4, 5)},
       (SyntaxTree){THE_NUMS, makeOp(op_add, 1, 3), makeOp(op_add, 0, 2),
                    makeOp(op_mul, 5, 4)});
+  // ((4 * 6) * (7 / 5))
+  checkTreeCannonIsEqual(
+      (SyntaxTree){THE_NUMS, makeOp(op_div, 3, 1), makeOp(op_mul, 0, 2),
+                   makeOp(op_mul, 5, 4)},
+      (SyntaxTree){THE_NUMS, makeOp(op_mul, 0, 2), makeOp(op_div, 3, 1),
+                   makeOp(op_mul, 4, 5)});
   checkTreeStaysUnchanged((SyntaxTree){THE_NUMS, makeOp(op_sub, 0, 1),
                                        makeOp(op_sub, 2, 3),
                                        makeOp(op_sub, 4, 5)});
+  checkTreeStaysFullyAccessable((SyntaxTree){THE_NUMS, makeOp(op_mul, 0, 2),
+                                             makeOp(op_mul, 4, 3),
+                                             makeOp(op_sub, 5, 1)});
   return result;
 }
