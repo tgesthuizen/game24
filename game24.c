@@ -152,7 +152,7 @@ static void swap_impl(void *a, void *b, void *restrict c, size_t size) {
   swap_impl(                                                                   \
       (a), (b),                                                                \
       (char[sizeof(*(a)) == sizeof(*(b)) ? (ptrdiff_t)sizeof(*(a)) : -1]){0},  \
-      sizeof(*(a)));
+      sizeof(*(a)))
 
 static int compareOps(const enum OperatorKind lhs[ops_count],
                       const enum OperatorKind rhs[ops_count]) {
