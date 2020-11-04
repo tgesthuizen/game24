@@ -106,7 +106,7 @@ Move the seven nodes of the tree into an array, where the four
 numbers are placed in front of the three operators.
 Now construct an arena from which the operator inputs can be
 choosen. The initial bounds of the arena are $[0, 4)$.
-The first operator two ``wire up'' will be array entry 4, at the end
+The first operator to ``wire up'' will be array entry 4, at the end
 of the arena.
 Now repeat the following steps for all operators:
 \begin{enumerate}
@@ -127,9 +127,9 @@ refer to their left and right hand side operands. This means that
 swapping the actual elements of the array will break the referencing
 of the operator nodes.
 Therefore an extra indirection is used where the indices of the real
-nodes are stored in an array of indicis and only the indices in the
+nodes are stored in an array and only the indices in this
 array are swapped.
-Through this indirection it is possibly to virtually swap elements in
+Through this indirection it is possible to virtually swap elements in
 the array without changing the physical arrangement of the nodes in
 memory.
 Find an example of this algorithm in figure~\ref{fig:treecon}.
@@ -141,7 +141,7 @@ that need to be checked as a consequence.
 
 \section{Design of the first iteration of the program}
 
-The user enters the four numbers the program shall find solutions
+The user enters the four numbers the program will try to find solutions
 for. The program then calculates all permutations and builds up the
 syntax trees for them. If a syntax tree evaluates to 24, it is
 printed.
@@ -176,9 +176,9 @@ slow.
 As the time spent in \code{evalSyntaxTree} is only around $50\%$,
 the maximal speedup possible by optimizing it is around $\times 2$.
 
-While the first iteration of the program does what was asked for it
-does it in a very ugly way. E.g. the output for the numbers $2$ $2$ $3$ $9$
-is
+Although the first iteration of the program does what it is intended to do,
+it does so in a very ugly way. As an example, the output for the numbers $2$ $2$ $3$ $9$
+is:
 \begin{multicols}{2}
 \begin{verbatim}
 ((2 * 9) + (2 * 3))
@@ -234,17 +234,19 @@ several drawbacks:
   are generated, not when new shortcuts in evaluation are discovered.
 \end{itemize}
 
+Therefore option \ref{opt:filter} will be implemented instead.
+
 \input{measurements.inc}
 
 \section{Implementing a filter for duplicate solutions}
 
 The second iteration of the program shall solve the main problem of
 the first iteration:
-The printing of trees that are equivalent by means of associativity
+The problem of printing trees that are equivalent by means of associativity
 and commutativity.
-The problem is divided into two subproblems:
+This problem is divided into two subproblems:
 \begin{description}
-\item[Canonicalization] Transform equivalent tree into equal trees.
+\item[Canonicalization] Transform equivalent trees into equal trees.
   This part shall be implemented by the function
   \code{canonicalizeTree}.
 \item[Hashing] Collision free hashing of tree structures allows space
@@ -288,9 +290,9 @@ This can be extended to commutativity by storing all operands of
 adjacent commutative and associative nodes in a list and sorting the
 list at the end.
 See figure~\ref{fig:commutcanon} for an example.
-In addition, if the operand indices of non commutative operators are
+In addition, if the operand indices of non-commutative operators are
 not ordered, the operands and indices need to be swapped.
-Otherwise trees with non commutative operators might be printed
+Otherwise trees with non-commutative operators might be printed
 multiple times just because of a different layout in memory of the
 same tree.
 
