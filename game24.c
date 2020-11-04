@@ -106,7 +106,9 @@ static EvalResult evalSyntaxTree(const SyntaxTree tree,
     case op_mul:
       return makeNumber(lhs.num * rhs.num);
     case op_div:
-      return rhs.num != 0 ? makeNumber(lhs.num / rhs.num) : makeInvalid();
+      return (rhs.num != 0 && lhs.num % rhs.num == 0)
+                 ? makeNumber(lhs.num / rhs.num)
+                 : makeInvalid();
     }
   }
   }
