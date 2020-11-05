@@ -465,6 +465,9 @@ int main() {
       .size = 0,
       .capacity = initial_cache_size};
   iterateAllSyntaxTrees(numbers, checkAndPrintCallback, &state);
+  if(state.size == 0) {
+    puts("No solutions!");
+  }
   free(state.seenTrees);
   return 0;
 }
