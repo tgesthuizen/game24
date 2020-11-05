@@ -1,4 +1,9 @@
-set(CHECK_PROG upperBound canonicalizeTree hashTree insert swap)
+set(CHECK_PROG upperBound
+	       canonicalizeTree
+	       canonicalizeNeverTruncates
+	       hashTree
+	       insert
+	       swap)
 
 foreach(prog ${CHECK_PROG})
     add_executable(${prog} ${prog}.c)
