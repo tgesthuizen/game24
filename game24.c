@@ -358,8 +358,9 @@ static unsigned char findCommutativeOperator(SyntaxTree tree,
   }
 }
 
-static unsigned char canonicalizeTree(SyntaxTree tree, struct Node *root) {
-  return findCommutativeOperator(tree, root - tree);
+static void canonicalizeTree(SyntaxTree tree, struct Node *root) {
+  const unsigned char newRoot = findCommutativeOperator(tree, root - tree);
+  assert(tree + newRoot == root && "Root element doesn't change");
 }
 
 MAKE_LINEAR_SEARCH(findUChar, unsigned char)
