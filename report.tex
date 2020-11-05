@@ -35,6 +35,7 @@
 }
 \usepackage{multicol}
 \usepackage{listings}
+\usepackage{placeins}
 \lstalias{shell}{sh}
 \definecolor{comment-green}{rgb}{0,0.6,0}
 \definecolor{linenumber-gray}{rgb}{0.5,0.5,0.5}
@@ -155,20 +156,16 @@ The above requirements result in the following software parts:
 \item Syntax tree printing
 \end{enumerate}
 
-\section{Code of the first iteration of the program}
-
-\lstinputlisting[language=C]{iteration1.c}
-
 \section{Problems with the first iteration}
 
 The first iteration of the program does very well. On Tim Gesthuizens
 laptop the program takes a little bit longer than a tenth of a second
 to run.
-Surprisingly, as shows in figure \ref{fig:opt-info-it1}, GCC is able to
+Surprisingly, as shows in section~\ref{sec:opt1}, GCC is able to
 fold most of the code into the \code{main} function.
 Even the indirect call of \textit{iterateAllSyntaxTrees} to
 \code{checkAndPrintCallback} is detected and inlined.
-As shown in figure \ref{fig:perfit1}, the hottest part of the program
+As shown in section~\ref{sec:perf1}, the hottest part of the program
 is the evaluation of syntax trees.
 As expected the compiler was not able to inline the two recursive
 functions that traverse the binary trees, therefore they are quite
@@ -233,8 +230,6 @@ several drawbacks:
   This function should be changed when there is a change to how trees
   are generated, not when new shortcuts in evaluation are discovered.
 \end{itemize}
-
-\input{measurements.inc}
 
 \section{Implementing a filter for duplicate solutions}
 
@@ -314,5 +309,19 @@ algorithm has to be reiterated.
 
 \input{tikz/bitlayout.inc}
 \input{tikz/commutative.inc}
+
+\FloatBarrier
+\clearpage
+\huge{Measurements and source code}
+\addcontentsline{toc}{section}{Measurements and source code}
+\input{measurements.inc}
+\section{Source code}
+\subsection{First iteration}
+
+\lstinputlisting[language=C]{iteration1.c}
+
+\subsection{Second iteration}
+
+\lstinputlisting[language=C]{game24.c}
 
 \end{document}
