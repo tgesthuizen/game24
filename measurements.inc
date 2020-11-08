@@ -43,31 +43,33 @@
   \label{sec:opt1}
 
   \begin{lstlisting}
-  ~/src/game24/build$ gcc -fopt-info -O2 ../game24.c -o game24
-  ../game24.c:123:11: optimized:  Inlining compareOps/29 into iterateAllSyntaxTrees/30.
-  ../game24.c:153:7: optimized:  Inlining swap/28 into iterateAllSyntaxTrees/30.
-  ../game24.c:151:7: optimized:  Inlining swap/28 into iterateAllSyntaxTrees/30.
-  ../game24.c:148:7: optimized:  Inlining swap/28 into iterateAllSyntaxTrees/30.
-  ../game24.c:146:7: optimized:  Inlining swap/28 into iterateAllSyntaxTrees/30.
-  ../game24.c:143:7: optimized:  Inlining swap/28 into iterateAllSyntaxTrees/30.
-  ../game24.c:141:7: optimized:  Inlining swap/28 into iterateAllSyntaxTrees/30.
-  ../game24.c:58:61: optimized:  Inlining makeInvalid/23 into evalSyntaxTree/24.
-  ../game24.c:58:29: optimized:  Inlining makeNumber/22 into evalSyntaxTree/24.
-  ../game24.c:56:14: optimized:  Inlining makeNumber/22 into evalSyntaxTree/24.
-  ../game24.c:54:14: optimized:  Inlining makeNumber/22 into evalSyntaxTree/24.
-  ../game24.c:52:14: optimized:  Inlining makeNumber/22 into evalSyntaxTree/24.
-  ../game24.c:48:14: optimized:  Inlining makeInvalid/23 into evalSyntaxTree/24.
-  ../game24.c:43:12: optimized:  Inlining makeNumber/22 into evalSyntaxTree/24.
-  ../game24.c:77:5: optimized:   Inlining putchar/5 into printSyntaxTreeImpl/25 (always_inline).
-  ../game24.c:73:5: optimized:   Inlining putchar/5 into printSyntaxTreeImpl/25 (always_inline).
-  ../game24.c:82:3: optimized:   Inlining putchar/5 into printSyntaxTree/26 (always_inline).
-  ../game24.c:155:7: optimized: converting indirect call in iterateAllSyntaxTrees.constprop/54 to direct call to checkAndPrintCallback/31
-  ../game24.c:123:38: optimized:  Inlined incrementOperators/27 into iterateAllSyntaxTrees.constprop/54 which now has time 174325.022705 and size 116, net change of -9.
-  ../game24.c:155:7: optimized:  Inlined checkAndPrintCallback/55 into iterateAllSyntaxTrees.constprop/54 which now has time 182150.243408 and size 126, net change of +10.
-  ../game24.c:164:5: optimized:  Inlined printSyntaxTree/56 into checkAndPrintCallback/55 which now has time 183683.494385 and size 16, net change of +4.
-  ../game24.c:164:5: optimized:  Inlined printSyntaxTree/26 into checkAndPrintCallback/31 which now has time 22.030000 and size 20, net change of -6.
-  ../game24.c:132:7: optimized: loop with 2 iterations completely unrolled (header execution count -1856307904)
-  ../game24.c:108:3: optimized: loop with 2 iterations completely unrolled (header execution count 1743412647)
+  ~/src/game24$ gcc -std=c99 -O2 -fopt-info iteration1.c
+  iteration1.c:93:20: optimized:  Inlining makeInvalid/12 into evalSyntaxTree/13.
+  iteration1.c:92:20: optimized:  Inlining makeNumber/11 into evalSyntaxTree/13.
+  iteration1.c:89:14: optimized:  Inlining makeNumber/11 into evalSyntaxTree/13.
+  iteration1.c:87:14: optimized:  Inlining makeNumber/11 into evalSyntaxTree/13.
+  iteration1.c:85:14: optimized:  Inlining makeNumber/11 into evalSyntaxTree/13.
+  iteration1.c:81:14: optimized:  Inlining makeInvalid/12 into evalSyntaxTree/13.
+  iteration1.c:76:12: optimized:  Inlining makeNumber/11 into evalSyntaxTree/13.
+  iteration1.c:112:5: optimized:   Inlining putchar/2 into printSyntaxTreeImpl/15 (always_inline).
+  iteration1.c:108:5: optimized:   Inlining putchar/2 into printSyntaxTreeImpl/15 (always_inline).
+  iteration1.c:117:3: optimized:   Inlining putchar/2 into printSyntaxTree/16 (always_inline).
+  iteration1.c:160:11: optimized:  Inlining compareOps/19 into iterateAllSyntaxTrees/20.
+  iteration1.c:193:7: optimized: converting indirect call in iterateAllSyntaxTrees.constprop/42 to direct call to checkAndPrintCallback/21
+  iteration1.c:202:5: optimized:  Inlined printSyntaxTree/16 into checkAndPrintCallback.part.0/41 which now has time 30.000000 and size 13, net change of -6.
+  iteration1.c:160:38: optimized:  Inlined incrementOperators/17 into iterateAllSyntaxTrees.constprop/42 which now has time 260776.399170 and size 133, net change of -5.
+  iteration1.c:193:7: optimized:  Inlined checkAndPrintCallback/44 into iterateAllSyntaxTrees.constprop/42 which now has time 267554.123535 and size 143, net change of +10.
+  optimized:  Inlined checkAndPrintCallback.part.0/45 into checkAndPrintCallback/44 which now has time 269205.316895 and size 17, net change of +5.
+  optimized:  Inlined checkAndPrintCallback.part.0/41 into checkAndPrintCallback/21 which now has time 22.232400 and size 22, net change of -8.
+  iteration1.c:184:7: optimized:  Inlined swap_impl.constprop/47 into iterateAllSyntaxTrees.constprop/42 which now has time 298341.280762 and size 155, net change of +7.
+  iteration1.c:189:7: optimized:  Inlined swap_impl.constprop/48 into iterateAllSyntaxTrees.constprop/42 which now has time 327477.244629 and size 162, net change of +7.
+  iteration1.c:186:7: optimized:  Inlined swap_impl.constprop/49 into iterateAllSyntaxTrees.constprop/42 which now has time 356613.208496 and size 169, net change of +7.
+  iteration1.c:179:7: optimized:  Inlined swap_impl.constprop/50 into iterateAllSyntaxTrees.constprop/42 which now has time 385749.172363 and size 176, net change of +7.
+  iteration1.c:191:7: optimized:  Inlined swap_impl.constprop/51 into iterateAllSyntaxTrees.constprop/42 which now has time 414885.136230 and size 183, net change of +7.
+  iteration1.c:181:7: optimized:  Inlined swap_impl.constprop/43 into iterateAllSyntaxTrees.constprop/42 which now has time 444021.100098 and size 190, net change of -8.
+  iteration1.c:121:3: optimized: loop with 2 iterations completely unrolled (header execution count 1502253972)
+  iteration1.c:170:7: optimized: loop with 2 iterations completely unrolled (header execution count -1856307904)
+  iteration1.c:143:3: optimized: loop with 2 iterations completely unrolled (header execution count 1743412647)
   \end{lstlisting}
 
 \subsection{Second iteration}
