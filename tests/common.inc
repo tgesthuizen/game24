@@ -24,7 +24,7 @@ static bool equalNodes(const struct Node *lhs, const struct Node *rhs) {
   case node_operator:
     return equalOperators(&lhs->v.op, &rhs->v.op);
   }
-  __builtin_unreachable();
+  CANT_REACH
 }
 
 static bool equalSyntaxTree(const SyntaxTree lhs, const SyntaxTree rhs) {
