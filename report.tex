@@ -143,17 +143,17 @@ Now construct an arena from which the operator inputs can be
 choosen. The initial bounds of the arena are $[0, 4)$.
 The first operator to ``wire up'' will be array entry 4, at the end
 of the arena.
-Now repeat the following steps for all operators:
+Then repeat the following steps for all operators:
 \begin{enumerate}
   \item Connect the left hand side of the operator with one of the
     elements in the arena. Swap the selected element to the last
-    element in the arena and shrink the end of it by one.
+    element in the arena and move the end of it one spot to the left.
   \item Connect the right hand side of the operator with one of the
     elements in the arena. Swap the operator with the selected
     operand. This is done as the operator is now fully connected and
     can be used as an input for the following operators.
 \end{enumerate}
-If the algorithm is executed as described here, at the end the first
+At the end of this algorithm the first
 element of the array will always be the root node of the tree. In the
 implementation the last swap is omitted so that the root node of the
 tree is always the last node.
@@ -171,8 +171,8 @@ Find an example of this algorithm in figure~\ref{fig:treecon}.
 
 Given this algorithm the total number of different syntax tree
 ``forms'' is $\opconnect$.
-There are $\complexop \cdot \opconnect = 11664$ different syntax trees
-that need to be checked as a consequence.
+Given the amount of operators, there are $\complexop \cdot \opconnect = 11664$
+different syntax trees that need to be checked.
 
 \section{Design of the first iteration of the program}
 
@@ -195,9 +195,9 @@ The above requirements result in the following software parts:
 The first iteration of the program does very well. On Tim Gesthuizens
 laptop the program takes a little bit longer than a tenth of a second
 to run.
-Surprisingly, as shows in section~\ref{sec:opt1}, GCC is able to
+Surprisingly, as is shown in section~\ref{sec:opt1}, GCC is able to
 fold most of the code into the \code{main} function.
-Even the indirect call of \textit{iterateAllSyntaxTrees} to
+Even the indirect call of \code{iterateAllSyntaxTrees} to
 \code{checkAndPrintCallback} is detected and inlined.
 As shown in section~\ref{sec:perf1}, the hottest part of the program
 is the evaluation of syntax trees.
@@ -265,11 +265,13 @@ several drawbacks:
   are generated, not when new shortcuts in evaluation are discovered.
 \end{itemize}
 
+Therefore option \ref{opt:filter} will be implemented in the second iteration.
+
 \section{Implementing a filter for duplicate solutions}
 
 The second iteration of the program shall solve the main problem of
 the first iteration:
-The problem of printing trees that are equivalent by means of associativity
+Printing trees that are equivalent by means of associativity
 and commutativity.
 This problem is divided into two subproblems:
 \begin{description}
@@ -292,7 +294,7 @@ The callback function shall be extended in the following way:
 \item A binary search through the hashes of all previously printed
   trees is done to see whether an equivalent tree has already been
   printed.
-\item If an equivalent tree wasn't already printed, the current tree
+\item If an equivalent tree hasn't already been printed, the current tree
   is printed and the hash is added to the array of previously printed
   arrays.
 \end{enumerate}
@@ -366,7 +368,7 @@ As in the first iteration, the most cpu cycles are spend in the
 The new branch of code execution does not add significant runtime
 cost \footnote{See section \ref{sec:perf2}}.
 On systems with slower I/O operations it might even be faster because
-if the smaller program output.
+of the smaller program output.
 
 Because of difficulties implementing the changes it was decided to add
 some basic unit tests for part of the operations. The unit test suite
