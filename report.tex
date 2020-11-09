@@ -35,6 +35,7 @@
 }
 \usepackage{multicol}
 \usepackage{listings}
+\usepackage{placeins}
 \lstalias{shell}{sh}
 \definecolor{comment-green}{rgb}{0,0.6,0}
 \definecolor{linenumber-gray}{rgb}{0.5,0.5,0.5}
@@ -66,13 +67,47 @@
   numberstyle=\tiny\color{linenumber-gray},
   stringstyle=\color{string-mauve}
 }
-\newcommand{\code}[1]{\textit{#1}}
+\newcommand{\code}[1]{\texttt{#1}}
 
 \begin{document}
 
 \maketitle
 
 \tableofcontents
+
+\listoffigures
+
+\clearpage
+
+\section{Working environment}
+
+In order to collaboratively work together, the following tools were
+used:
+
+\begin{description}
+\item[Git] As a version control system to handle the C source code for
+  the program and the \LaTeX source code for the report.
+\item[\LaTeX] To write the report in.
+\item[CMake] Is used to build the program and automate testing of the
+  software. CMake simplifies the handling of multiple release and
+  debug builds of the software.
+\item[GCC] As the primary C compiler to target.
+\item[Clang] As the secondary C compiler to check we are not relying
+  on GCC-only features. Clang is known to be more strict about what is
+  allowed by the language standards.
+\item[tcc] As a third, more minimalistic C compiler that does not fall
+  into the ``GCC / GCC compatible'' category. It also aided in
+  checking whether all optional GCC features are correctly excluded
+  from the compilation when they are not available\footnote{See for
+    example the usage of \code{\_\_builtin\_unreachable()}, which is
+    available in Clang and GCC, in section~\ref{sec:src}.}.
+\end{description}
+
+It was decided to share results via \url{github.com}. The main version
+of the repository, which contains the merged results, is hosted at
+\url{https://github.com/tgesthuizen/game24}.
+In order to not publish proprietary software, the files in the
+publicly visible repository have been licensed under the GPL3+.
 
 \section{Problem description}
 
@@ -149,26 +184,22 @@ It should be noted that all of this can be done in $\mathcal{O}(1)$
 space.
 The above requirements result in the following software parts:
 \begin{enumerate}
-\item {\tt main} and user interactions
+\item \code{main} and user interactions
 \item Syntax tree creation and permutation
 \item Syntax tree evaluation
 \item Syntax tree printing
 \end{enumerate}
-
-\section{Code of the first iteration of the program}
-
-\lstinputlisting[language=C]{iteration1.c}
 
 \section{Problems with the first iteration}
 
 The first iteration of the program does very well. On Tim Gesthuizens
 laptop the program takes a little bit longer than a tenth of a second
 to run.
-Surprisingly, as shows in figure \ref{fig:opt-info-it1}, GCC is able to
+Surprisingly, as shows in section~\ref{sec:opt1}, GCC is able to
 fold most of the code into the \code{main} function.
 Even the indirect call of \textit{iterateAllSyntaxTrees} to
 \code{checkAndPrintCallback} is detected and inlined.
-As shown in figure \ref{fig:perfit1}, the hottest part of the program
+As shown in section~\ref{sec:perf1}, the hottest part of the program
 is the evaluation of syntax trees.
 As expected the compiler was not able to inline the two recursive
 functions that traverse the binary trees, therefore they are quite
@@ -233,10 +264,6 @@ several drawbacks:
   This function should be changed when there is a change to how trees
   are generated, not when new shortcuts in evaluation are discovered.
 \end{itemize}
-
-Therefore option \ref{opt:filter} will be implemented instead.
-
-\input{measurements.inc}
 
 \section{Implementing a filter for duplicate solutions}
 
@@ -314,7 +341,100 @@ bitpacking.
 In order to get the indices described in \ref{sec:analysis}, the arena
 algorithm has to be reiterated.
 
+\section{Analysis of the second iteration}
+
+The second iteration is capable of canonicalizing trees so that
+equivalent trees become equal trees.
+Afterwards these trees can be efficiently hashed to form a set of
+already seen trees.
+This allows the program to only print one version of a set of
+duplicate trees.
+To name a negative point, the addition to the program is quite large.
+The amount of source code more than doubled in comparison to iteration
+one.
+In addition the program lost its $\mathcal{O}(1)$ space efficiency.
+It now requires a heap allocation in order to store the set of already
+seen trees.
+On the other hand there are quite few elements in the set for a
+typical run of the program and the small hash size of 16~bits keeps
+the expense of this addition small.
+It might even be possible to calculate a small enough maximum of set
+entries so that the set could be stored on the stack, regaining the
+$\mathcal{O}(1)$ space efficiency.
+As in the first iteration, the most cpu cycles are spend in the
+\code{evaluateSyntaxTree} function.
+The new branch of code execution does not add significant runtime
+cost \footnote{See section \ref{sec:perf2}}.
+On systems with slower I/O operations it might even be faster because
+if the smaller program output.
+
+Because of difficulties implementing the changes it was decided to add
+some basic unit tests for part of the operations. The unit test suite
+is by no means comprehensive, it just aided in analyzing bugs that
+were discovered in development versions of the program.
+The authors discovered that unit testing in C is not as easy and
+productive as expected and not a low hanging fruit as in other
+languages which have better support for adding higher level
+abstractions.
+Assertions were also added in order to partially test whether
+invariants that cannot be managed by abstractions in C are kept up and
+hold.
+
+This second version is the first version of the program where
+compilers have more varying output: Clang and GCCs inliner work
+differently and decided to emit calls to functions at different
+points. As implied, this means that both compilers decide to
+emit some the functions and not to inline everything into the main
+function apart from recursive tree traversing functions.
+The assembly output has grown to $\sim 1000$ lines. On one hand, this
+shows that the code generated by the compilers is still quite dense,
+on the other hand this indicates that abstractions could not be used
+well to reuse existing concepts.
+
+\section{Summary}
+
+Both iterations have their own value:
+While the first iteration is fully functional with only 200 lines of
+code, the second iteration seems less redundant to humans and shows
+solutions that seem less duplicate to a human.
+One optimization is missed by iteration two: One could transform
+subtractions to additions of negative numbers and divisions to
+multiplications of fractions.
+This would allow to divide the whole tree into only commutative
+chunks, as only additions and multiplications are left.
+After normal canonicalization fractions and negative numbers could be
+transformed back.
+This would allow for even better results.
+
+Using C for the implementation was a particular challenge.
+A lot of ideas cannot be represented in syntax. Invariants cannot be
+enforced. C's domain is programming for very restricted environments
+or when absolute control is required of what is happening.
+This is not the case here and other languages would have a been a lot
+more capable of expressing the concepts and algorithms.
+Large parts of the program have been prototyped in C++ and Scheme and
+have been translated into C afterwards.
+Implementing the program in C caused a lot of headaches that could
+have been prevented by using a different language.
+The source code could be easily shrinked into a fourth of its size if
+it were written in a different language.
+
 \input{tikz/bitlayout.inc}
 \input{tikz/commutative.inc}
+
+\FloatBarrier
+\clearpage
+\huge{Measurements and source code}
+\addcontentsline{toc}{section}{Measurements and source code}
+\input{measurements.inc}
+\section{Source code}
+\label{sec:src}
+\subsection{First iteration}
+
+\lstinputlisting[language=C]{iteration1.c}
+
+\subsection{Second iteration}
+
+\lstinputlisting[language=C]{game24.c}
 
 \end{document}

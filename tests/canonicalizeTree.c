@@ -39,10 +39,10 @@ static void checkTreeStaysUnchanged(SyntaxTree tree) {
   memcpy(copy, tree, sizeof(SyntaxTree));
   canonicalizeTree(copy, copy + all_count - 1);
   if (!equalSyntaxTree(tree, copy)) {
-    printf("%s: %d: Tree changed in an unexpected manor: ", __FILE__, __LINE__);
-    printFullTree(tree);
-    printf(" -> ");
-    printFullTree(copy);
+    printf("%s: %d: Tree changed in an unexpected manor\n", __FILE__, __LINE__);
+    debugPrintTree(tree);
+    fputs(" -> ", stdout);
+    debugPrintTree(copy);
     putchar('\n');
     result = 1;
   }
@@ -105,9 +105,6 @@ int main() {
                    makeOp(op_mul, 5, 4)},
       (SyntaxTree){THE_NUMS, makeOp(op_mul, 0, 2), makeOp(op_div, 3, 1),
                    makeOp(op_mul, 4, 5)});
-  checkTreeStaysUnchanged((SyntaxTree){THE_NUMS, makeOp(op_sub, 0, 1),
-                                       makeOp(op_sub, 2, 3),
-                                       makeOp(op_sub, 4, 5)});
   checkTreeStaysFullyAccessable((SyntaxTree){THE_NUMS, makeOp(op_mul, 0, 2),
                                              makeOp(op_mul, 4, 3),
                                              makeOp(op_sub, 5, 1)});

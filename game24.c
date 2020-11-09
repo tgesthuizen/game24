@@ -243,9 +243,21 @@ static unsigned char findCommutativeOperator(SyntaxTree tree,
 static unsigned char findAdjacentNodes(SyntaxTree tree, unsigned char current,
                                        struct CommutativeChunkState *state);
 
+static unsigned char maxOperand(const SyntaxTree tree, unsigned char idx) {
+  switch (tree[idx].kind) {
+  case node_number:
+    return idx;
+  case node_operator:
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+    return MAX(tree[idx].v.op.lhs, tree[idx].v.op.rhs) +
+           (tree[idx].v.op.kind << 4);
+  }
+  CANT_REACH;
+}
+
 static void canonicalizeMemoryRepr(SyntaxTree tree, struct Operator *op) {
   struct Node *const lhs = tree + op->lhs, *const rhs = tree + op->rhs;
-  if (lhs > rhs) {
+  if (maxOperand(tree, op->lhs) > maxOperand(tree, op->rhs)) {
     swap(lhs, rhs);
     swap(&op->lhs, &op->rhs);
   }
@@ -275,7 +287,7 @@ static unsigned char findAdjacentNodes(SyntaxTree tree, unsigned char current,
   return current;
 }
 
-static void sort(unsigned char *first, unsigned char *last) {
+static void sortUChar(unsigned char *first, unsigned char *last) {
   bool sorted = false;
   while (!sorted) {
     sorted = true;
@@ -288,22 +300,10 @@ static void sort(unsigned char *first, unsigned char *last) {
   }
 }
 
-static unsigned char maxOperand(const SyntaxTree tree, unsigned char idx) {
-  switch (tree[idx].kind) {
-  case node_number:
-    return idx;
-  case node_operator:
-#define MAX(a, b) ((a) >= (b) ? (a) : (b))
-    return MAX(tree[idx].v.op.lhs, tree[idx].v.op.rhs);
-  }
-  CANT_REACH;
-}
-
 static unsigned char
-rewriteCommutativeChain(SyntaxTree tree, unsigned char current,
-                        struct CommutativeChunkState *state) {
-  sort(state->operands, state->operands + state->operandIndex);
-  sort(state->operators, state->operators + state->operatorIndex);
+rewriteCommutativeChain(SyntaxTree tree, struct CommutativeChunkState *state) {
+  sortUChar(state->operands, state->operands + state->operandIndex);
+  sortUChar(state->operators, state->operators + state->operatorIndex);
   unsigned char *operand = state->operands, *const begin = state->operators,
                 *operator= begin;
   const unsigned char firstLhsIdx = *operand++;
@@ -319,21 +319,11 @@ rewriteCommutativeChain(SyntaxTree tree, unsigned char current,
     struct Operator *const op = &tree[*operator].v.op;
     op->rhs = *(operator- 1);
     op->lhs = *operand++;
-    if (op->lhs > op->rhs) {
-      canonicalizeMemoryRepr(tree, op);
-    }
+    canonicalizeMemoryRepr(tree, op);
   }
   assert(operand == state->operands + state->operandIndex);
   return *(operator- 1);
 }
-
-#define MAKE_LINEAR_SEARCH(name, type)                                         \
-  static type *name(type *first, type *last, type target) {                    \
-    while (first != last && *first != target) {                                \
-      ++first;                                                                 \
-    }                                                                          \
-    return first;                                                              \
-  }
 
 static unsigned char findCommutativeOperator(SyntaxTree tree,
                                              unsigned char current) {
@@ -348,7 +338,7 @@ static unsigned char findCommutativeOperator(SyntaxTree tree,
                                           .operands = {0},
                                           .operators = {0}};
     findAdjacentNodes(tree, current, &state);
-    return rewriteCommutativeChain(tree, current, &state);
+    return rewriteCommutativeChain(tree, &state);
   } else {
     struct Operator *const cur = &tree[current].v.op;
     cur->lhs = findCommutativeOperator(tree, cur->lhs);
@@ -358,18 +348,63 @@ static unsigned char findCommutativeOperator(SyntaxTree tree,
   }
 }
 
-static unsigned char canonicalizeTree(SyntaxTree tree, struct Node *root) {
-  return findCommutativeOperator(tree, root - tree);
+static unsigned char rewriteTreeStructureImpl(const SyntaxTree from,
+                                              unsigned char fromidx,
+                                              SyntaxTree to,
+                                              unsigned char *numidx,
+                                              unsigned char *opidx) {
+  unsigned char res;
+  switch (from[fromidx].kind) {
+  case node_number:
+    res = (*numidx)++;
+    to[res] = (struct Node){.kind = node_number, .v = {.n = from[fromidx].v.n}};
+    break;
+  case node_operator: {
+    const struct Operator *fop = &from[fromidx].v.op;
+    struct Operator op = {.kind = from[fromidx].v.op.kind};
+    res = (*opidx)--;
+    op.lhs = rewriteTreeStructureImpl(from, fop->lhs, to, numidx, opidx);
+    op.rhs = rewriteTreeStructureImpl(from, fop->rhs, to, numidx, opidx);
+    to[res] = (struct Node){.kind = node_operator, .v = {.op = op}};
+  }
+  }
+  return res;
 }
 
-MAKE_LINEAR_SEARCH(findUChar, unsigned char)
+static void rewriteTreeStructure(SyntaxTree from, unsigned char root) {
+  SyntaxTree to;
+  unsigned char numidx = 0;
+  unsigned char opidx = all_count - 1;
+  const unsigned char newRoot =
+      rewriteTreeStructureImpl(from, root, to, &numidx, &opidx);
+  assert(newRoot == all_count - 1);
+  assert(numidx == number_count);
+  assert(opidx == all_count - ops_count - 1);
+  memcpy(from, to, sizeof(SyntaxTree));
+}
+
+static void canonicalizeTree(SyntaxTree tree, struct Node *root) {
+  const unsigned char newRoot = findCommutativeOperator(tree, root - tree);
+  assert(tree + newRoot == root && "Root element doesn't change");
+  rewriteTreeStructure(tree, newRoot);
+}
+
+static unsigned char *findUChar(unsigned char *first, unsigned char *last,
+                                unsigned char target) {
+  while (first != last && *first != target) {
+    ++first;
+  }
+  return first;
+}
 
 static uint16_t hashTree(const SyntaxTree tree) {
   static const unsigned char offsets[ops_count * 3] = {0,  6, 8,  2, 10,
                                                        12, 4, 13, 14};
   const unsigned char *curOffset = offsets;
   uint16_t result = 0;
-#define PLACE_BITS(bits) result |= ((unsigned char)(bits)) << *curOffset++;
+#define PLACE_BITS(bits)                                                       \
+  assert(curOffset < offsets + ops_count * 3),                                 \
+      result |= ((unsigned char)(bits)) << *curOffset++;
   unsigned char itab[all_count] = {0, 1, 2, 3, 4, 5, 6};
   int arenaRight = number_count;
   int curNode = number_count;
@@ -379,10 +414,12 @@ static uint16_t hashTree(const SyntaxTree tree) {
     PLACE_BITS(curOperator->v.op.kind);
     unsigned char *const lhs =
         findUChar(itab, itab + all_count, curOperator->v.op.lhs);
+    assert(lhs >= itab && lhs < itab + all_count);
     PLACE_BITS(lhs - itab);
     swap(lhs, itab + --arenaRight);
     unsigned char *const rhs =
         findUChar(itab, itab + all_count, curOperator->v.op.rhs);
+    assert(rhs >= itab && rhs < itab + all_count);
     PLACE_BITS(rhs - itab);
     swap(rhs, itab + curNode++);
   }
@@ -448,6 +485,19 @@ static void checkAndPrintCallback(const SyntaxTree tree,
   }
 }
 
+static void sortInt(int *first, int *last) {
+  bool sorted = false;
+  while (!sorted) {
+    sorted = true;
+    for (int *pos = first + 1; pos != last; ++pos) {
+      if (*pos < *(pos - 1)) {
+        swap(pos, pos - 1);
+        sorted = false;
+      }
+    }
+  }
+}
+
 enum { initial_cache_size = 32 };
 
 int main() {
@@ -459,11 +509,15 @@ int main() {
       return 1;
     }
   }
+  sortInt(numbers, numbers + number_count);
   struct SharedState state = (struct SharedState){
       .seenTrees = xmalloc(sizeof(uint16_t) * initial_cache_size),
       .size = 0,
       .capacity = initial_cache_size};
   iterateAllSyntaxTrees(numbers, checkAndPrintCallback, &state);
+  if (state.size == 0) {
+    puts("No solutions!");
+  }
   free(state.seenTrees);
   return 0;
 }
