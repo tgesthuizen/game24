@@ -92,7 +92,7 @@ used:
   software. CMake simplifies the handling of multiple release and
   debug builds of the software.
 \item[GCC] As the primary C compiler to target.
-\item[Clang] As the secondary C compiler to check we are not relying
+\item[Clang] As the secondary C compiler to check the code does not rely
   on GCC-only features. Clang is known to be more strict about what is
   allowed by the language standards.
 \item[tcc] As a third, more minimalistic C compiler that does not fall
@@ -128,7 +128,7 @@ See figure~\ref{fig:trees} for examples of syntax trees.
 The problem is to construct all possible syntax trees and evaluate
 them systematically.
 Selecting the operators is not difficult:
-We have a set $Operators = \{+, -, \cdot, \div\}$ and generate all
+There is a set $Operators = \{+, -, \cdot, \div\}$. Generate all
 permutations of a multi-set $M$ such that $\vert M \vert = 3$.
 \newcommand{\complexop}{{\vert Operators \vert}^3}
 \newcommand{\opconnect}{4 \cdot 3 \cdot 3 \cdot 2 \cdot 2 \cdot 1}
@@ -136,7 +136,7 @@ This results in $\complexop$ combinations of
 operators.
 
 To create a syntax tree from the four operands and the three operators
-we use the following algorithm:
+the following algorithm is used:
 Move the seven nodes of the tree into an array, where the four
 numbers are placed in front of the three operators.
 Now construct an arena from which the operator inputs can be
@@ -245,7 +245,7 @@ solution to a human. This is because the computer does not know about
 the associativity and commutativity of the $+$ and $\cdot$
 operations.
 
-We can solve this issue in two ways:
+This issue can be solved in two ways:
 \begin{enumerate}
 \item \label{opt:rewrite} Rewrite part of the generation routine to
   omit redundant trees
@@ -306,15 +306,14 @@ ordering for equivalent trees needs to be introduced.
 This way a tree can be transformed into the smallest or largest tree
 in the ordering.
 This kind of problem is well known in compiler theory.
-An interesting property of it is that while we need to order the
-trees, the ordering itself is not important.
+An interesting property of it is that while the trees need to be ordered, 
+the ordering itself is not important.
 
-As we store the array nodes in a contiguous array we use the property
-that every node has an associated index to order them.
-By sorting the operands of associative nodes by their node indices we
-can transform all trees that are equivalent trees by means of
-associativity into the same tree. See figure~\ref{fig:assoccanon} for
-an example.
+As the program stores the array nodes in a contiguous array, each node
+has an associated index. This property is used to order them.
+All trees that are equivalent by means of associativity can be transformed
+into the same tree by sorting the operand indices of associative nodes.
+See figure~\ref{fig:assoccanon} for an example.
 This can be extended to commutativity by storing all operands of
 adjacent commutative and associative nodes in a list and sorting the
 list at the end.
