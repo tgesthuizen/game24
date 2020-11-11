@@ -327,20 +327,18 @@ same tree.
 \subsection{Hashing}
 
 Hashing trees using a collision free algorithm allows more storage
-efficient comparison of trees.
-The following describes a way to calculate an integer that fits into
-two bytes and is collision free for all tree structures.
-It is important to note that we only need to hash the tree structures
-which result is 24, as the numbers are always constant for a single
-problem.
-Given the complexities described in section~\ref{sec:analysis} it can
-be derived how many bits are needed to store the individual
-connections.
-$log_2{(3 \cdot 4)}$ bits are needed to store the operator kinds.
-See figure~\ref{fig:comptree} for a detailed overview of the
-bitpacking.
-In order to get the indices described in \ref{sec:analysis}, the arena
-algorithm has to be reiterated.
+efficient comparison of trees. It is important to note that only trees 
+whose result is 24 need to be used, since only those trees are relevant 
+to the problem.
+Each tree has 3 operators and 4 numbers. Since there are 4 unique operators,
+each operator can be represented by a 2 bit pattern. The 4 numbers are 
+not stored, since they are the same across all trees. The differences between 
+trees are the operands of each operator, so these are stored. Specifically, 
+the index of each operand. Since there are 6 possible operands for the first 
+operator ($3 + 4 - 1 = 6$), a 3 bit pattern was initially used to represent 
+the index of the operand. However, it was discovered that by using the same 
+arena principle as at tree construction (see figure~\ref{fig:treecon}), it was 
+possible to reduce this to a 2 bit pattern. 
 
 \section{Analysis of the second iteration}
 
