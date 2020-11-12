@@ -327,18 +327,16 @@ same tree.
 \subsection{Hashing}
 
 Hashing trees using a collision free algorithm allows more storage
-efficient comparison of trees. It is important to note that only trees 
-whose result is 24 need to be used, since only those trees are relevant 
-to the problem.
-Each tree has 3 operators and 4 numbers. Since there are 4 unique operators,
-each operator can be represented by a 2 bit pattern. The 4 numbers are 
-not stored, since they are the same across all trees. The differences between 
-trees are the operands of each operator, so these are stored. Specifically, 
-the index of each operand. Since there are 6 possible operands for the first 
-operator ($3 + 4 - 1 = 6$), a 3 bit pattern was initially used to represent 
-the index of the operand. However, it was discovered that by using the same 
-arena principle as at tree construction (see figure~\ref{fig:treecon}), it was 
-possible to reduce this to a 2 bit pattern. 
+efficient comparison of trees. 
+It is important to note that only trees whose result is 24 need to be used, 
+since only those trees are relevant to the problem.
+Each tree has 3 operators and 4 numbers. Since there are 4 unique operators, 
+each operator can be represented by a 2 bit pattern. 
+The 4 numbers are not stored, since they are the same across all trees. 
+The differences between trees are the operands of each operator, so these are stored. 
+Specifically, the index of each operand. 
+By using the same arena principle as at tree construction (see figure~\ref{fig:treecon}), it is 
+possible to represent this value with 2 bits, since the size of the arena will at most be 4. 
 
 \section{Analysis of the second iteration}
 
