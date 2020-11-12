@@ -92,7 +92,7 @@ used:
   software. CMake simplifies the handling of multiple release and
   debug builds of the software.
 \item[GCC] As the primary C compiler to target.
-\item[Clang] As the secondary C compiler to check we are not relying
+\item[Clang] As the secondary C compiler to check the code does not rely
   on GCC-only features. Clang is known to be more strict about what is
   allowed by the language standards.
 \item[tcc] As a third, more minimalistic C compiler that does not fall
@@ -128,7 +128,7 @@ See figure~\ref{fig:trees} for examples of syntax trees.
 The problem is to construct all possible syntax trees and evaluate
 them systematically.
 Selecting the operators is not difficult:
-We have a set $Operators = \{+, -, \cdot, \div\}$ and generate all
+There is a set $Operators = \{+, -, \cdot, \div\}$. Generate all
 permutations of a multi-set $M$ such that $\vert M \vert = 3$.
 \newcommand{\complexop}{{\vert Operators \vert}^3}
 \newcommand{\opconnect}{4 \cdot 3 \cdot 3 \cdot 2 \cdot 2 \cdot 1}
@@ -136,24 +136,24 @@ This results in $\complexop$ combinations of
 operators.
 
 To create a syntax tree from the four operands and the three operators
-we use the following algorithm:
+the following algorithm is used:
 Move the seven nodes of the tree into an array, where the four
 numbers are placed in front of the three operators.
 Now construct an arena from which the operator inputs can be
 choosen. The initial bounds of the arena are $[0, 4)$.
 The first operator to ``wire up'' will be array entry 4, at the end
 of the arena.
-Now repeat the following steps for all operators:
+Then repeat the following steps for all operators:
 \begin{enumerate}
   \item Connect the left hand side of the operator with one of the
     elements in the arena. Swap the selected element to the last
-    element in the arena and shrink the end of it by one.
+    element in the arena and move the end of it one spot to the left.
   \item Connect the right hand side of the operator with one of the
     elements in the arena. Swap the operator with the selected
     operand. This is done as the operator is now fully connected and
     can be used as an input for the following operators.
 \end{enumerate}
-If the algorithm is executed as described here, at the end the first
+At the end of this algorithm the first
 element of the array will always be the root node of the tree. In the
 implementation the last swap is omitted so that the root node of the
 tree is always the last node.
@@ -162,21 +162,21 @@ refer to their left and right hand side operands. This means that
 swapping the actual elements of the array will break the referencing
 of the operator nodes.
 Therefore an extra indirection is used where the indices of the real
-nodes are stored in an array of indicis and only the indices in the
+nodes are stored in an array and only the indices in this
 array are swapped.
-Through this indirection it is possibly to virtually swap elements in
+Through this indirection it is possible to virtually swap elements in
 the array without changing the physical arrangement of the nodes in
 memory.
 Find an example of this algorithm in figure~\ref{fig:treecon}.
 
 Given this algorithm the total number of different syntax tree
 ``forms'' is $\opconnect$.
-There are $\complexop \cdot \opconnect = 11664$ different syntax trees
-that need to be checked as a consequence.
+Given the amount of operators, there are $\complexop \cdot \opconnect = 9216$
+different syntax trees that need to be checked.
 
 \section{Design of the first iteration of the program}
 
-The user enters the four numbers the program shall find solutions
+The user enters the four numbers the program will try to find solutions
 for. The program then calculates all permutations and builds up the
 syntax trees for them. If a syntax tree evaluates to 24, it is
 printed.
@@ -195,9 +195,9 @@ The above requirements result in the following software parts:
 The first iteration of the program does very well. On Tim Gesthuizens
 laptop the program takes a little bit longer than a tenth of a second
 to run.
-Surprisingly, as shows in section~\ref{sec:opt1}, GCC is able to
+Surprisingly, as is shown in section~\ref{sec:opt1}, GCC is able to
 fold most of the code into the \code{main} function.
-Even the indirect call of \textit{iterateAllSyntaxTrees} to
+Even the indirect call of \code{iterateAllSyntaxTrees} to
 \code{checkAndPrintCallback} is detected and inlined.
 As shown in section~\ref{sec:perf1}, the hottest part of the program
 is the evaluation of syntax trees.
@@ -207,9 +207,9 @@ slow.
 As the time spent in \code{evalSyntaxTree} is only around $50\%$,
 the maximal speedup possible by optimizing it is around $\times 2$.
 
-While the first iteration of the program does what was asked for it
-does it in a very ugly way. E.g. the output for the numbers $2$ $2$ $3$ $9$
-is
+Although the first iteration of the program does what it is intended to do,
+it does so in a very ugly way. As an example, the output for the numbers $2$ $2$ $3$ $9$
+is:
 \begin{multicols}{2}
 \begin{verbatim}
 ((2 * 9) + (2 * 3))
@@ -245,7 +245,7 @@ solution to a human. This is because the computer does not know about
 the associativity and commutativity of the $+$ and $\cdot$
 operations.
 
-We can solve this issue in two ways:
+This issue can be solved in two ways:
 \begin{enumerate}
 \item \label{opt:rewrite} Rewrite part of the generation routine to
   omit redundant trees
@@ -265,15 +265,17 @@ several drawbacks:
   are generated, not when new shortcuts in evaluation are discovered.
 \end{itemize}
 
+Therefore option \ref{opt:filter} will be implemented in the second iteration.
+
 \section{Implementing a filter for duplicate solutions}
 
 The second iteration of the program shall solve the main problem of
 the first iteration:
-The printing of trees that are equivalent by means of associativity
+Printing trees that are equivalent by means of associativity
 and commutativity.
-The problem is divided into two subproblems:
+This problem is divided into two subproblems:
 \begin{description}
-\item[Canonicalization] Transform equivalent tree into equal trees.
+\item[Canonicalization] Transform equivalent trees into equal trees.
   This part shall be implemented by the function
   \code{canonicalizeTree}.
 \item[Hashing] Collision free hashing of tree structures allows space
@@ -292,7 +294,7 @@ The callback function shall be extended in the following way:
 \item A binary search through the hashes of all previously printed
   trees is done to see whether an equivalent tree has already been
   printed.
-\item If an equivalent tree wasn't already printed, the current tree
+\item If an equivalent tree hasn't already been printed, the current tree
   is printed and the hash is added to the array of previously printed
   arrays.
 \end{enumerate}
@@ -304,42 +306,37 @@ ordering for equivalent trees needs to be introduced.
 This way a tree can be transformed into the smallest or largest tree
 in the ordering.
 This kind of problem is well known in compiler theory.
-An interesting property of it is that while we need to order the
-trees, the ordering itself is not important.
+An interesting property of it is that while the trees need to be ordered, 
+the ordering itself is not important.
 
-As we store the array nodes in a contiguous array we use the property
-that every node has an associated index to order them.
-By sorting the operands of associative nodes by their node indices we
-can transform all trees that are equivalent trees by means of
-associativity into the same tree. See figure~\ref{fig:assoccanon} for
-an example.
+As the program stores the array nodes in a contiguous array, each node
+has an associated index. This property is used to order them.
+All trees that are equivalent by means of associativity can be transformed
+into the same tree by sorting the operand indices of associative nodes.
+See figure~\ref{fig:assoccanon} for an example.
 This can be extended to commutativity by storing all operands of
 adjacent commutative and associative nodes in a list and sorting the
 list at the end.
 See figure~\ref{fig:commutcanon} for an example.
-In addition, if the operand indices of non commutative operators are
+In addition, if the operand indices of non-commutative operators are
 not ordered, the operands and indices need to be swapped.
-Otherwise trees with non commutative operators might be printed
+Otherwise trees with non-commutative operators might be printed
 multiple times just because of a different layout in memory of the
 same tree.
 
 \subsection{Hashing}
 
 Hashing trees using a collision free algorithm allows more storage
-efficient comparison of trees.
-The following describes a way to calculate an integer that fits into
-two bytes and is collision free for all tree structures.
-It is important to note that we only need to hash the tree structures
-which result is 24, as the numbers are always constant for a single
-problem.
-Given the complexities described in section~\ref{sec:analysis} it can
-be derived how many bits are needed to store the individual
-connections.
-$log_2{(3 \cdot 4)}$ bits are needed to store the operator kinds.
-See figure~\ref{fig:comptree} for a detailed overview of the
-bitpacking.
-In order to get the indices described in \ref{sec:analysis}, the arena
-algorithm has to be reiterated.
+efficient comparison of trees. 
+It is important to note that only trees whose result is 24 need to be used, 
+since only those trees are relevant to the problem.
+Each tree has 3 operators and 4 numbers. Since there are 4 unique operators, 
+each operator can be represented by a 2 bit pattern. 
+The 4 numbers are not stored, since they are the same across all trees. 
+The differences between trees are the operands of each operator, so these are stored. 
+Specifically, the index of each operand. 
+By using the same arena principle as at tree construction (see figure~\ref{fig:treecon}), it is 
+possible to represent this value with 2 bits, since the size of the arena will at most be 4. 
 
 \section{Analysis of the second iteration}
 
@@ -366,7 +363,7 @@ As in the first iteration, the most cpu cycles are spend in the
 The new branch of code execution does not add significant runtime
 cost \footnote{See section \ref{sec:perf2}}.
 On systems with slower I/O operations it might even be faster because
-if the smaller program output.
+of the smaller program output.
 
 Because of difficulties implementing the changes it was decided to add
 some basic unit tests for part of the operations. The unit test suite
