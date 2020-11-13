@@ -8,6 +8,7 @@ set(CMAKE_C_EXTENSIONS OFF)
 
 add_executable(game24 game24.c)
 add_executable(game24it1 iteration1.c)
+add_executable(game24it3 iteration3.c)
 
 enable_testing()
 add_subdirectory(tests)
