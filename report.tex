@@ -378,6 +378,16 @@ Assertions were also added in order to partially test whether
 invariants that cannot be managed by abstractions in C are kept up and
 hold.
 
+There are several aspects of the canonicalization algorithm that were
+missed when it was planned.
+The needed changes were made after bugs with the canonicalization
+routine have been found.
+To name a single example, some trees were printed multiple times
+because canonicalization would yield the very same tree with different
+layouts in memory for equivalent inputs.
+A simple ordering for indices and memory cells by their address was
+added to fix the issue.
+
 This second version is the first version of the program where
 compilers have more varying output: Clang and GCCs inliner work
 differently and decided to emit calls to functions at different
