@@ -166,13 +166,13 @@ static int compareOps(const enum OperatorKind lhs[ops_count],
   return 1;
 }
 
-enum CallbackRet {Stop, Continue};
+enum CallbackRet { Stop, Continue };
 
-static void iterateAllSyntaxTrees(const int numbers[4],
-                                  enum CallbackRet (*callback)(const SyntaxTree tree,
-                                                   const struct Node *root,
-                                                   void *data),
-                                  void *data) {
+static enum CallbackRet iterateAllSyntaxTrees(
+    const int numbers[4],
+    enum CallbackRet (*callback)(const SyntaxTree tree, const struct Node *root,
+                                 void *data),
+    void *data) {
   SyntaxTree tree;
   static const enum OperatorKind finalOps[ops_count] = {op_div, op_div, op_div};
   enum OperatorKind ops[ops_count] = {op_add, op_add, op_add};
@@ -210,40 +210,23 @@ static void iterateAllSyntaxTrees(const int numbers[4],
       curOperator->v.op.rhs = itab[third_rhs];
       swap(itab + third_rhs, itab + curNode++);
       ++curOperator;
-      if(callback(tree, tree + all_count - 1, data) != Continue) {
-        return;
+      if (callback(tree, tree + all_count - 1, data) != Continue) {
+        return Stop;
       }
     }
   }
-}
-
-void debugPrintTree(const SyntaxTree tree) {
-  putchar('|');
-  for (const struct Node *curNode = tree, *const end = tree + all_count;
-       curNode != end; ++curNode) {
-    switch (curNode->kind) {
-    case node_number:
-      printf(" %d |", curNode->v.n);
-      break;
-    case node_operator:
-      printf(" %c <%d, %d> |", opChars[curNode->v.op.kind],
-             (int)curNode->v.op.lhs, (int)curNode->v.op.rhs);
-      break;
-    }
-  }
-  putchar('\n');
+  return Continue;
 }
 
 static enum CallbackRet checkAndPrintCallback(const SyntaxTree tree,
-                                  const struct Node *root, void *data) {
-  
+                                              const struct Node *root,
+                                              void *data) {
   const EvalResult res = evalSyntaxTree(tree, root);
-  if (res.valid && res.num == 24) {
-    printSyntaxTree(tree, root);
-    ++*((int *) data);
-    return Stop;
+  if (!res.valid || res.num != 24) {
+    return Continue;
   }
-  return Continue;
+  printSyntaxTree(tree, root);
+  return Stop;
 }
 
 int main() {
@@ -255,9 +238,7 @@ int main() {
       return 1;
     }
   }
-  int count = 0;
-  iterateAllSyntaxTrees(numbers, checkAndPrintCallback, &count);
-  if (!count) {
+  if (iterateAllSyntaxTrees(numbers, checkAndPrintCallback, NULL) == Continue) {
     puts("No solutions!");
   }
   return 0;
