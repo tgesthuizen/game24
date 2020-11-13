@@ -411,10 +411,11 @@ solution'' warning is printed like in the previous iterations.
 
 \section{Summary}
 
-Both iterations have their own value:
-While the first iteration is fully functional with only 200 lines of
-code, the second iteration seems less redundant to humans and shows
-solutions that seem less duplicate to a human.
+The last two iterations have their own value:
+While the third iteration is fully functional with only little more
+than 200 lines of code, the second iteration is a more complete
+implementaiton with solutions that seem less duplicate to a human than
+the ones from iteration 1.
 One optimization is missed by iteration two: One could transform
 subtractions to additions of negative numbers and divisions to
 multiplications of fractions.
@@ -423,6 +424,8 @@ chunks, as only additions and multiplications are left.
 After normal canonicalization fractions and negative numbers could be
 transformed back.
 This would allow for even better results.
+This idea was dropped because it would complicate a version that was
+discontinued because of it being too complicated.
 
 Using C for the implementation was a particular challenge.
 A lot of ideas cannot be represented in syntax. Invariants cannot be
@@ -434,8 +437,12 @@ Large parts of the program have been prototyped in C++ and Scheme and
 have been translated into C afterwards.
 Implementing the program in C caused a lot of headaches that could
 have been prevented by using a different language.
-The source code could be easily shrinked into a fourth of its size if
-it were written in a different language.
+In addition the source code could be easily shrinked into a fourth of
+its size if it were written in a different language.
+
+In conclusion all three iterations of the program are functioning:
+They all solve the examples given in the task description with respect
+to their differences.
 
 \input{tikz/bitlayout.inc}
 \input{tikz/commutative.inc}
