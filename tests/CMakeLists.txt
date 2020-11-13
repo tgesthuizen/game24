@@ -3,7 +3,7 @@ foreach(input ${KNOWN_INPUTS})
     add_test(NAME check-${input}
              COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/solutionCount.sh
 	             "${CMAKE_CURRENT_SOURCE_DIR}/${input}.in"
-		     $<TARGET_FILE:game24>)
+		     $<TARGET_FILE:game24it2>)
 endforeach()
 
 set(CHECK_PROG upperBound

@@ -1,5 +1,5 @@
 #define main xmain
-#include "../game24.c"
+#include "../iteration2.c"
 
 #undef main
 
