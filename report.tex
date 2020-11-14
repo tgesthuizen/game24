@@ -424,18 +424,16 @@ solution'' warning is printed like in the previous iterations.
 The last two iterations have their own value:
 While the third iteration is fully functional with only little more
 than 200 lines of code, the second iteration is a more complete
-implementaiton with solutions that seem less duplicate to a human than
+implementaiton with solutions that seem less duplicate to human eyes than
 the ones from iteration 1.
-One optimization is missed by iteration two: One could transform
-subtractions to additions of negative numbers and divisions to
-multiplications of fractions.
-This would allow to divide the whole tree into only commutative
+One optimization is missed by iteration two: Subtractions could be transformed
+to additions of negative numbers and divisions to multiplications of fractions.
+This would allow the whole tree to be divided into only commutative
 chunks, as only additions and multiplications are left.
-After normal canonicalization fractions and negative numbers could be
-transformed back.
+Fractions and negative numbers could be transformed back after normal canonicalization.
 This would allow for even better results.
 This idea was dropped because it would complicate a version that was
-discontinued because of it being too complicated.
+discontinued because of it being too complicated already.
 
 Using C for the implementation was a particular challenge.
 A lot of ideas cannot be represented in syntax. Invariants cannot be
